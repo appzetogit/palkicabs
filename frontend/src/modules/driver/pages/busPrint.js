@@ -69,7 +69,7 @@ export const printTicket = (win, ticket) => {
   const body = `
     <div class="ticket">
       <div class="row">
-        <div><h1>ZI Bus ticket</h1><p class="muted" style="margin:4px 0 0">${escapeHtml(route.operatorName || '')} ${escapeHtml(route.busName || '')}</p></div>
+        <div><h1>PALKI Bus ticket</h1><p class="muted" style="margin:4px 0 0">${escapeHtml(route.operatorName || '')} ${escapeHtml(route.busName || '')}</p></div>
         ${ticket.qrDataUrl ? `<img src="${ticket.qrDataUrl}" alt="Ticket QR" width="120" height="120">` : ''}
       </div>
       <div style="margin-top:12px"><div class="label">PNR</div><div class="pnr">${escapeHtml(ticket.pnr || ticket.bookingCode)}</div></div>

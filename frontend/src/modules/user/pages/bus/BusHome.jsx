@@ -18,8 +18,8 @@ import {
 } from 'lucide-react';
 import userBusService from '../../services/busService';
 import { useSettings } from '../../../../shared/context/SettingsContext';
-import { BusScreen, SectionTitle, Skeleton } from '../../components/bus/ZiBusUi';
-import { addDays, formatDay, formatRupees, routePrefixFor, toDateKey } from '../../components/bus/zibusFormat';
+import { BusScreen, SectionTitle, Skeleton } from '../../components/bus/PalkiBusUi';
+import { addDays, formatDay, formatRupees, routePrefixFor, toDateKey } from '../../components/bus/palkibusFormat';
 import BusHomeDesktop from './BusHomeDesktop';
 
 const isEnabledFlag = (value) => {
@@ -279,7 +279,7 @@ const BusHome = () => {
               <Ticket size={14} /> My trips
             </button>
           </div>
-          <p className="mt-6 text-[11px] font-extrabold uppercase tracking-[0.3em] zb-accent-text">ZI Bus</p>
+          <p className="mt-6 text-[11px] font-extrabold uppercase tracking-[0.3em] zb-accent-text">PALKI Bus</p>
           <h1 className="mt-1 text-[1.7rem] font-extrabold leading-tight zb-on-dark">Bus tickets,<br />hot food on the way.</h1>
           <p className="mt-2 max-w-[18rem] text-sm font-medium zb-on-dark-2">
             Live seats, highway dhaba meals and live bus tracking in one booking.
@@ -406,7 +406,7 @@ const BusHome = () => {
           <p className="zb-muted text-sm font-semibold">No routes are live yet.</p>
         )}
 
-        <SectionTitle title="How ZI Bus works" />
+        <SectionTitle title="How PALKI Bus works" />
         <div className="grid grid-cols-2 gap-3">
           {HOW_IT_WORKS.map((step, index) => {
             const StepIcon = step.icon;

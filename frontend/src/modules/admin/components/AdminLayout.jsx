@@ -9,7 +9,7 @@ import { useSettings } from '../../../shared/context/SettingsContext';
 import { getSupportConversations, markSupportMessagesRead } from '../../shared/chat/chatApi';
 import { adminService } from '../services/adminService';
 import { isMenuAllowed } from '../constants/adminAccess';
-import { zibusAdminService } from '../services/zibusAdminService';
+import { palkibusAdminService } from '../services/palkibusAdminService';
 import { ADMIN_SIDEBAR_SECTIONS } from '../constants/adminSidebar';
 import toast from 'react-hot-toast';
 import AdminSplashScreen from './AdminSplashScreen';
@@ -873,7 +873,7 @@ const AdminLayout = () => {
     if (!canSeeDhabas) return undefined;
     let alive = true;
     const load = () =>
-      zibusAdminService
+      palkibusAdminService
         .pendingDhabaCount()
         .then((data) => { if (alive) setPendingDhabaCount(Number(data?.count || 0)); })
         .catch(() => {});

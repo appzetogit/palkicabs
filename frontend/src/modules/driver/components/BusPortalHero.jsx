@@ -1,6 +1,6 @@
 import React from 'react';
 
-/// The ZI Bus coach on the night road, in the same navy and yellow as the
+/// The PALKI Bus coach on the night road, in the same navy and yellow as the
 /// rider's bus pages. Drawn rather than a photo, so it stays sharp at any size.
 const BusPortalHero = () => (
   <div className="absolute inset-0 overflow-hidden bg-gradient-to-br from-[#0a1a33] to-[#123266]" aria-hidden="true">
@@ -57,7 +57,7 @@ const BusPortalHero = () => (
       </g>
 
       {/* Name, lights */}
-      <text x="282" y="208" fill="#ffc400" fontFamily="Outfit, sans-serif" fontSize="22" fontWeight="800" letterSpacing="3">ZI BUS</text>
+      <text x="282" y="208" fill="#ffc400" fontFamily="Outfit, sans-serif" fontSize="22" fontWeight="800" letterSpacing="3">PALKI BUS</text>
       <rect x="534" y="186" width="15" height="11" rx="3" fill="#fff4c2" />
       <rect x="92" y="186" width="9" height="13" rx="2" fill="#f43f5e" />
 

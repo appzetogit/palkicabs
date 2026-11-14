@@ -106,7 +106,7 @@ export const adminUpdateOperator = async (req, res) => {
 };
 
 /// Sales and settlement for one company over a date range (travel dates),
-/// split by where each ticket was sold. Commission applies to ZI Bus sales.
+/// split by where each ticket was sold. Commission applies to PALKI Bus sales.
 export const adminOperatorReport = async (req, res) => {
   const operator = await BusOperator.findById(req.params.id).lean();
   if (!operator) throw new ApiError(404, 'Operator not found');
@@ -144,17 +144,17 @@ export const adminOperatorReport = async (req, res) => {
     const busRate = Number(bus.adminCommissionPercentage);
     const commissionRate = (Number.isFinite(busRate) && busRate > 0 ? busRate : companyRate) / 100;
     const mine = rows.filter((row) => String(row._id.bus) === String(bus._id));
-    const zibus = mine.filter((row) => row._id.source === 'user');
-    const zibusGross = round(zibus.reduce((sum, row) => sum + row.gross, 0));
+    const palkibus = mine.filter((row) => row._id.source === 'user');
+    const palkibusGross = round(palkibus.reduce((sum, row) => sum + row.gross, 0));
     return {
       busServiceId: String(bus._id),
       busName: bus.busName,
       registrationNumber: bus.registrationNumber || '',
       seatsBySource: mine.map((row) => ({ source: row._id.source, seats: row.seats, bookings: row.bookings })),
-      zibusGross,
+      palkibusGross,
       commissionPercent: round(commissionRate * 100),
-      commission: round(zibusGross * commissionRate),
-      payout: round(zibusGross * (1 - commissionRate)),
+      commission: round(palkibusGross * commissionRate),
+      payout: round(palkibusGross * (1 - commissionRate)),
     };
   });
 
@@ -164,7 +164,7 @@ export const adminOperatorReport = async (req, res) => {
     to: to === '9999-12-31' ? '' : to,
     buses: perBus,
     totals: {
-      zibusGross: round(perBus.reduce((sum, bus) => sum + bus.zibusGross, 0)),
+      palkibusGross: round(perBus.reduce((sum, bus) => sum + bus.palkibusGross, 0)),
       commission: round(perBus.reduce((sum, bus) => sum + bus.commission, 0)),
       payout: round(perBus.reduce((sum, bus) => sum + bus.payout, 0)),
       seats: perBus.reduce((sum, bus) => sum + bus.seatsBySource.reduce((inner, row) => inner + row.seats, 0), 0),

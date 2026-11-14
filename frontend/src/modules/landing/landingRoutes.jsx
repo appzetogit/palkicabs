@@ -1,7 +1,7 @@
 import { Route, useOutletContext } from 'react-router-dom';
 import LandingShell from './LandingShell';
 import { LANDING_TABS } from './landingTabs';
-import Home from './pages/Home';
+import PalkiHome from './pages/home/PalkiHome';
 import AboutUs from './pages/AboutUs';
 import Services from './pages/Services';
 import Corporate from './pages/Corporate';
@@ -9,7 +9,7 @@ import Partner from './pages/Partner';
 import Driver from './pages/Driver';
 import Advertise from './pages/Advertise';
 import ContactUs from './pages/ContactUs';
-import ZiBus from './pages/ZiBus';
+import PalkiBus from './pages/PalkiBus';
 
 /**
  * The landing pages take `openBookingModal` / `setActiveTab` as props, from when
@@ -24,10 +24,10 @@ const withShellContext = (Component) => {
 };
 
 const PAGES = {
-  home: withShellContext(Home),
+  home: withShellContext(PalkiHome),
   about: withShellContext(AboutUs),
   services: withShellContext(Services),
-  bus: withShellContext(ZiBus),
+  bus: withShellContext(PalkiBus),
   corporate: withShellContext(Corporate),
   partner: withShellContext(Partner),
   driver: withShellContext(Driver),

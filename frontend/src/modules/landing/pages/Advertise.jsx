@@ -52,8 +52,8 @@ const Advertise = () => {
           <span className="page-tag">{advertisePage.tag}</span>
           <h1 className="page-title">{advertisePage.title}</h1>
           <p className="page-subtitle">
-            Every ZI CAB trip is a captive screen moment. Put your brand in front of riders and
-            driver-partners across our app, website and driver network in Bengaluru, Mangaluru and Hubballi.
+            Every PALKI trip is a captive screen moment. Put your brand in front of riders and
+            driver-partners across our app, website and driver network.
           </p>
         </div>
       </div>
@@ -66,7 +66,7 @@ const Advertise = () => {
               const Icon = w.icon;
               return (
                 <div key={i} className="why-ad-card">
-                  <div className="why-ad-icon"><Icon size={22} color="#00BBA9" /></div>
+                  <div className="why-ad-icon"><Icon size={22} color="#FF6A13" /></div>
                   <h3>{w.title}</h3>
                   <p>{w.desc}</p>
                 </div>
@@ -89,7 +89,7 @@ const Advertise = () => {
               const Icon = p.icon;
               return (
                 <div key={i} className="placement-card">
-                  <div className="pl-icon"><Icon size={22} color="#00BBA9" /></div>
+                  <div className="pl-icon"><Icon size={22} color="#FF6A13" /></div>
                   <h3 className="pl-title">{p.title}</h3>
                   <p className="pl-desc">{p.desc}</p>
                   <div className="pl-formats">
@@ -117,7 +117,7 @@ const Advertise = () => {
               const Icon = ind.icon;
               return (
                 <div key={i} className="industry-card">
-                  <Icon size={22} color="#00BBA9" />
+                  <Icon size={22} color="#FF6A13" />
                   <span>{ind.label}</span>
                 </div>
               );
@@ -137,29 +137,35 @@ const Advertise = () => {
             </p>
 
             <div className="ad-contact-list">
+              {CONTACT.email && (
               <div className="ad-contact-item">
                 <strong>Email</strong>
                 <a href={`mailto:${CONTACT.email}?subject=Advertising%20Enquiry`}>{CONTACT.email}</a>
               </div>
+              )}
+              {CONTACT.tollFree && (
               <div className="ad-contact-item">
                 <strong>Phone</strong>
                 <span>{CONTACT.tollFree}</span>
               </div>
+              )}
+              {CONTACT.address && (
               <div className="ad-contact-item">
                 <strong>Office</strong>
                 <span>{CONTACT.address}</span>
               </div>
+              )}
             </div>
           </div>
 
           <div className="ad-form-card" data-reveal>
             {submitted ? (
               <div className="ad-success">
-                <CheckCircle2 size={50} color="#00BBA9" />
+                <CheckCircle2 size={50} color="#FF6A13" />
                 <h3>Enquiry Received</h3>
                 <p>
                   Thanks, <strong>{contactName || 'there'}</strong>. Our ad sales team will contact{' '}
-                  <strong>{phone}</strong> with the ZI CAB media kit.
+                  <strong>{phone}</strong> with the PALKI media kit.
                 </p>
               </div>
             ) : (
@@ -172,7 +178,7 @@ const Advertise = () => {
                     id="ad-company"
                     type="text"
                     required
-                    placeholder="e.g. Grand Majestic Mall"
+                    placeholder="e.g. City Centre Mall"
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
                   />
@@ -253,7 +259,7 @@ const Advertise = () => {
       </section>
 
       <style>{`
-        .zicab-landing {
+        .palki-landing {
           .why-ad-section { background: #FFFFFF; }
 
           .why-ad-grid {
@@ -310,7 +316,7 @@ const Advertise = () => {
           }
 
           .placement-card:hover {
-            border-color: #00BBA9;
+            border-color: #FF6A13;
             transform: translateY(-5px);
             box-shadow: var(--shadow-md);
           }
@@ -318,7 +324,7 @@ const Advertise = () => {
           .pl-icon {
             width: 44px;
             height: 44px;
-            background: rgba(0, 187, 169, 0.1);
+            background: rgba(255, 106, 19, 0.1);
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -357,7 +363,7 @@ const Advertise = () => {
           }
 
           .industries-section {
-            background: linear-gradient(135deg, #07152B 0%, #0B1F3A 100%);
+            background: linear-gradient(135deg, #1F2126 0%, #2A2C33 100%);
           }
 
           .industries-grid {
@@ -381,7 +387,7 @@ const Advertise = () => {
           }
 
           .industry-card:hover {
-            border-color: #00BBA9;
+            border-color: #FF6A13;
             transform: translateY(-3px);
           }
 
@@ -413,7 +419,7 @@ const Advertise = () => {
             gap: 3px;
             background: #F8FAFC;
             border: 1px solid #E2E8F0;
-            border-left: 3px solid #00BBA9;
+            border-left: 3px solid #FF6A13;
             border-radius: 10px;
             padding: 12px 16px;
           }
@@ -431,11 +437,11 @@ const Advertise = () => {
             color: #0F172A;
           }
 
-          .ad-contact-item a:hover { color: #00BBA9; }
+          .ad-contact-item a:hover { color: #FF6A13; }
 
           .ad-form-card {
-            background: #0C1B30;
-            border: 1px solid rgba(0, 187, 169, 0.3);
+            background: #33363E;
+            border: 1px solid rgba(255, 106, 19, 0.3);
             border-radius: 16px;
             padding: 32px;
             box-shadow: 0 16px 36px rgba(0, 0, 0, 0.25);
@@ -484,7 +490,7 @@ const Advertise = () => {
           }
 
           .ad-field input:focus, .ad-field select:focus, .ad-field textarea:focus {
-            border-color: #00BBA9;
+            border-color: #FF6A13;
           }
 
           .ad-field input::placeholder, .ad-field textarea::placeholder {
@@ -492,7 +498,7 @@ const Advertise = () => {
           }
 
           .ad-field select option {
-            background: #0C1B30;
+            background: #33363E;
           }
 
           .ad-success {

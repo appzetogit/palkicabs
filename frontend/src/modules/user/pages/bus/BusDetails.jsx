@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, Mail, MapPin, Minus, Phone, Plus, ReceiptText, User, UtensilsCrossed } from 'lucide-react';
 import userBusService from '../../services/busService';
 import { userAuthService } from '../../services/authService';
-import { BusScreen, BusTopBar, FooterBar, SectionTitle, TripLine } from '../../components/bus/ZiBusUi';
-import { formatDay, formatRupees, routePrefixFor } from '../../components/bus/zibusFormat';
+import { BusScreen, BusTopBar, FooterBar, SectionTitle, TripLine } from '../../components/bus/PalkiBusUi';
+import { formatDay, formatRupees, routePrefixFor } from '../../components/bus/palkibusFormat';
 import { buildBusRouteState, toPlainData } from './busNavigationState';
 
 // A zero or blank per-type price means "not set", so the bus fare applies.
@@ -280,7 +280,7 @@ const BusDetails = () => {
         key: order.keyId,
         amount: order.amount,
         currency: order.currency || 'INR',
-        name: 'ZI Bus',
+        name: 'PALKI Bus',
         description: `${bus.fromCity || fromCity} to ${bus.toCity || toCity}`,
         order_id: order.orderId,
         prefill: { name, email, contact: phone },

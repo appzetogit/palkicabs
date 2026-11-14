@@ -7,11 +7,11 @@ import api from '../../../shared/api/axiosInstance';
 const raw = (response) => response?.data?.__raw ?? response?.data ?? response;
 const todayKey = () => new Date().toLocaleDateString('en-CA');
 
-/// Ticket QR codes read "ZIBUS|<PNR>|<date>|<schedule>|<seats>"; a bare PNR
+/// Ticket QR codes read "PALKIBUS|<PNR>|<date>|<schedule>|<seats>"; a bare PNR
 /// typed in works too.
 const pnrFromScan = (text) => {
   const value = String(text || '').trim();
-  return value.startsWith('ZIBUS|') ? value.split('|')[1] : value;
+  return value.startsWith('PALKIBUS|') ? value.split('|')[1] : value;
 };
 
 const QrScanner = ({ onResult, onClose }) => {

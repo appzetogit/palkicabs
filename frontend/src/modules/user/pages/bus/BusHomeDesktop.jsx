@@ -16,18 +16,18 @@ import {
 } from 'lucide-react';
 import { LANDING_TABS } from '../../../landing/landingTabs';
 import { useSettings } from '../../../../shared/context/SettingsContext';
-import { formatRupees } from '../../components/bus/zibusFormat';
-import heroBus from '../../../../assets/zibus/hero-bus.webp';
-import routeMysuru from '../../../../assets/zibus/route-mysuru.webp';
-import routeHyderabad from '../../../../assets/zibus/route-hyderabad.webp';
-import routeChennai from '../../../../assets/zibus/route-chennai.webp';
-import '../../components/bus/zibus-desktop.css';
+import { formatRupees } from '../../components/bus/palkibusFormat';
+import heroBus from '../../../../assets/palkibus/hero-bus.webp';
+import routeMysuru from '../../../../assets/palkibus/route-mysuru.webp';
+import routeHyderabad from '../../../../assets/palkibus/route-hyderabad.webp';
+import routeChennai from '../../../../assets/palkibus/route-chennai.webp';
+import '../../components/bus/palkibus-desktop.css';
 
 const NAV_LABELS = {
   home: 'Home',
   about: 'About Us',
   services: 'Services',
-  bus: 'Zi Bus',
+  bus: 'PALKI Bus',
   corporate: 'Corporate',
   partner: 'Partner',
   driver: 'Driver',
@@ -52,7 +52,7 @@ const pictureFor = (toCity = '') => CITY_PICTURES.find(([pattern]) => pattern.te
 const ROUTES_SHOWN = 3;
 const BANNER_SECONDS = 5;
 
-/// The ZI Bus search page. For signed-in riders on a computer it sits above the
+/// The PALKI Bus search page. For signed-in riders on a computer it sits above the
 /// app's phone shell so it can use the full width (below 1024px BusHome shows the
 /// phone layout). `embedded` is the public website page, inside the site's own
 /// menu and footer, at every screen size.
@@ -84,7 +84,7 @@ const BusHomeDesktop = ({
   onRouteSearch,
 }) => {
   const [showAllRoutes, setShowAllRoutes] = useState(false);
-  // Admin's Zi Bus banners take turns in the hero; the bundled coach until there are some.
+  // Admin's PALKI Bus banners take turns in the hero; the bundled coach until there are some.
   const slides = heroImages.length ? heroImages : [heroBus];
   const [tick, setTick] = useState(0);
   const slide = tick % slides.length;
@@ -95,7 +95,7 @@ const BusHomeDesktop = ({
   }, [slides.length]);
   const visibleRoutes = showAllRoutes ? routes : routes.slice(0, ROUTES_SHOWN);
   const { settings } = useSettings();
-  const logo = settings.general?.logo || '/zicab-logo.jpg';
+  const logo = settings.general?.logo || '/palki-logo.png';
 
   const citySelect = (value, onChange, label) => (
     <select className="zbd-input" value={value} onChange={(event) => onChange(event.target.value)} aria-label={label}>
@@ -113,7 +113,7 @@ const BusHomeDesktop = ({
             <img src={logo} alt="" />
             <span>
               <strong>ZI <em>CAB</em></strong>
-              <small>Your Ride. Our Priority.</small>
+              <small>Your Taxi App</small>
             </span>
           </Link>
           <nav className="zbd-links" aria-label="Main">
@@ -133,12 +133,12 @@ const BusHomeDesktop = ({
             key={image}
             className={`zbd-hero-bus ${index === slide ? 'is-shown' : ''}`}
             src={image}
-            alt={index === slide ? 'ZI Bus' : ''}
+            alt={index === slide ? 'PALKI Bus' : ''}
             aria-hidden={index !== slide}
           />
         ))}
         <div className="zbd-wrap zbd-hero-text">
-          <span className="zbd-pill"><Bus size={18} /> ZI BUS</span>
+          <span className="zbd-pill"><Bus size={18} /> PALKI BUS</span>
           <h1>Your Journey, Your Way.</h1>
           <p>Book comfortable buses for every journey.</p>
         </div>

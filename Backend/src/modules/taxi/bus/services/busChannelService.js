@@ -12,7 +12,7 @@ import { resolveScheduleRoute } from '../utils/busRoutes.js';
 
 // Multi-platform seat synchronisation.
 //
-// ZI Bus owns the seat map. Every other place that sells the same bus is a
+// PALKI Bus owns the seat map. Every other place that sells the same bus is a
 // "channel" and talks to us in two directions:
 //
 //   inbound  - the channel calls our channel API (X-Api-Key) to read live
@@ -557,9 +557,9 @@ const deliverEvent = async (eventDoc, channel) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-ZiBus-Event': eventDoc.event,
-        'X-ZiBus-Event-Id': String(eventDoc._id),
-        'X-ZiBus-Signature': signPayload(channel.webhookSecret, body),
+        'X-PalkiBus-Event': eventDoc.event,
+        'X-PalkiBus-Event-Id': String(eventDoc._id),
+        'X-PalkiBus-Signature': signPayload(channel.webhookSecret, body),
       },
       body,
       signal: AbortSignal.timeout(WEBHOOK_TIMEOUT_MS),

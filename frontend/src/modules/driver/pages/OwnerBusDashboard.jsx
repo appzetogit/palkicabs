@@ -839,7 +839,7 @@ const OwnerBusDashboard = ({ portal = 'owner' }) => {
         <div className="flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400 text-slate-950"><Bus size={20} /></span>
           <div>
-            <p className="font-bold leading-tight">{isBusPortal ? 'ZI Bus' : 'Bus dashboard'}</p>
+            <p className="font-bold leading-tight">{isBusPortal ? 'PALKI Bus' : 'Bus dashboard'}</p>
             <p className="text-xs text-slate-300">{isBusPortal ? 'Bus dashboard' : 'Owner'}</p>
           </div>
         </div>
@@ -873,7 +873,7 @@ const OwnerBusDashboard = ({ portal = 'owner' }) => {
               <ArrowLeft size={20} />
             </button>
           )}
-          <p className="font-bold">{isBusPortal ? 'ZI Bus' : 'Bus dashboard'}</p>
+          <p className="font-bold">{isBusPortal ? 'PALKI Bus' : 'Bus dashboard'}</p>
           <button type="button" onClick={() => navigate(managePath)} className="ml-auto rounded-lg px-2 py-1.5 text-sm font-semibold text-slate-200 hover:bg-white/10">
             {manageLabel}
           </button>

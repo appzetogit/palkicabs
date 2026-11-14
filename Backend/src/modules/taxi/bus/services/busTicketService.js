@@ -63,7 +63,7 @@ export const buildBusTicket = async (booking) => {
   const seats = activeSeatLabels(booking);
 
   // Compact, offline-checkable payload for the conductor's scanner.
-  const qrText = ['ZIBUS', booking.pnr, booking.travelDate, booking.scheduleId, seats.join('.')].join('|');
+  const qrText = ['PALKIBUS', booking.pnr, booking.travelDate, booking.scheduleId, seats.join('.')].join('|');
   const qrDataUrl = await QRCode.toDataURL(qrText, { margin: 1, width: 320, errorCorrectionLevel: 'M' });
 
   const foodOrders = await DhabaOrder.find({

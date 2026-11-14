@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowDownUp, BusFront, ChevronLeft, ChevronRight, Radio, Snowflake, Star, UtensilsCrossed, Users } from 'lucide-react';
 import userBusService from '../../services/busService';
-import { BusScreen, BusTopBar, EmptyState, Skeleton, TripLine } from '../../components/bus/ZiBusUi';
-import { addDays, formatDay, formatRupees, routePrefixFor, toDateKey } from '../../components/bus/zibusFormat';
+import { BusScreen, BusTopBar, EmptyState, Skeleton, TripLine } from '../../components/bus/PalkiBusUi';
+import { addDays, formatDay, formatRupees, routePrefixFor, toDateKey } from '../../components/bus/palkibusFormat';
 import { buildBusRouteState, toPlainData } from './busNavigationState';
 
 const SORTS = [

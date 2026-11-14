@@ -1,6 +1,6 @@
-/* ZI CAB landing styles.
+/* PALKI landing styles.
 
-   Everything below is nested under `.zicab-landing` so it cannot reach the taxi
+   Everything below is nested under `.palki-landing` so it cannot reach the taxi
    app: both sides use generic class names (`container`, `btn`, `section-title`)
    and the taxi side is Tailwind 4, which an unscoped `*` or `h1` rule would
    restyle wholesale.
@@ -9,42 +9,43 @@
    by the booking modal, which renders outside the landing subtree. */
 
 :root {
-  --primary-navy: #0B1F3A;
-  --navy-dark: #07152B;
-  --navy-card: #0C1B30;
+  --primary-navy: #2A2C33;
+  --navy-dark: #1F2126;
+  --navy-card: #33363E;
   /* one step deeper than navy-dark, for the recessed bands */
-  --navy-deep: #050F20;
+  --navy-deep: #18191D;
 
-  --primary-teal: #00BBA9;
-  --teal-hover: #00a394;
-  --teal-light: rgba(0, 187, 169, 0.12);
-  --teal-bright: #46E3D2;
-  --teal-ink: #04645C;
+  --primary-teal: #FF6A13;
+  --teal-hover: #E5530A;
+  --teal-light: rgba(255, 106, 19, 0.12);
+  --teal-bright: #FF9A3C;
+  --teal-ink: #B84300;
 
-  /* Warm off-white instead of #FFF for large fields — pure white next to a
-     saturated teal reads cheap and glares on an OLED phone. */
-  --bg-light: #F1F3F7;
-  --bg-white: #FBFBFC;
+  /* PALKI palette: the variable names above are historical (navy/teal); their
+     values are the logo's charcoal and orange. Warm off-white for large fields
+     so the orange does not glare against pure white. */
+  --bg-light: #FFF8F2;
+  --bg-white: #FFFCF9;
   --bg-raised: #FFFFFF;
 
-  --text-dark: #0B1220;
-  --text-body: #334155;
-  --text-muted: #64748B;
-  --text-light: #94A3B8;
+  --text-dark: #2A2C33;
+  --text-body: #4A4D57;
+  --text-muted: #6B6F7A;
+  --text-light: #A3A6AE;
   --text-white: #FFFFFF;
 
-  --border-light: #E4E8EF;
-  --border-dark: #1E293B;
+  --border-light: #F0E4DA;
+  --border-dark: #3B3E47;
 
-  --font-main: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Sora', 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Outfit', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* Layered shadows with a hairline top highlight, so surfaces read as material
      rather than as a rectangle with a grey outline. */
   --shadow-sm: 0 1px 2px rgba(11, 18, 32, 0.04), 0 4px 12px rgba(11, 18, 32, 0.045);
   --shadow-md: 0 2px 4px rgba(11, 18, 32, 0.045), 0 12px 28px rgba(11, 18, 32, 0.07);
   --shadow-lg: 0 4px 8px rgba(11, 18, 32, 0.05), 0 24px 54px rgba(11, 18, 32, 0.1);
-  --shadow-teal: 0 6px 14px rgba(0, 187, 169, 0.28), 0 18px 40px rgba(0, 187, 169, 0.18);
+  --shadow-teal: 0 6px 14px rgba(255, 106, 19, 0.28), 0 18px 40px rgba(255, 106, 19, 0.18);
   --hairline: inset 0 1px 0 rgba(255, 255, 255, 0.85);
   --hairline-dark: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 
@@ -65,13 +66,13 @@
 /* The taxi app enforces its font with `* { font-family: ... !important }`, so the
    landing has to answer in kind. Higher specificity wins between two important
    declarations, which is why the heading rules below still take precedence. All
-   of it stays inside .zicab-landing. */
-.zicab-landing,
-.zicab-landing * {
+   of it stays inside .palki-landing. */
+.palki-landing,
+.palki-landing * {
   font-family: var(--font-main) !important;
 }
 
-.zicab-landing {
+.palki-landing {
   box-sizing: border-box;
   background-color: var(--bg-light);
   color: var(--text-body);
@@ -80,14 +81,14 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.zicab-landing *,
-.zicab-landing *::before,
-.zicab-landing *::after {
+.palki-landing *,
+.palki-landing *::before,
+.palki-landing *::after {
   box-sizing: border-box;
 }
 
-.zicab-landing {
-  /* ZI CAB Custom CSS Design System */
+.palki-landing {
+  /* PALKI Custom CSS Design System */
 
 
   /* Display type: tighter tracking and optical sizing at large sizes. Default
@@ -143,10 +144,10 @@
     width: 8px;
   }
   ::-webkit-scrollbar-track {
-    background: #0B1F3A;
+    background: #2A2C33;
   }
   ::-webkit-scrollbar-thumb {
-    background: #00BBA9;
+    background: #FF6A13;
     border-radius: 4px;
   }
 
@@ -269,9 +270,9 @@
     overflow: hidden;
     background-color: var(--navy-deep);
     background-image:
-      radial-gradient(110% 130% at 12% -10%, rgba(0, 187, 169, 0.22) 0%, transparent 52%),
+      radial-gradient(110% 130% at 12% -10%, rgba(255, 106, 19, 0.22) 0%, transparent 52%),
       radial-gradient(90% 120% at 88% 0%, rgba(43, 92, 168, 0.28) 0%, transparent 55%),
-      linear-gradient(160deg, #08182F 0%, #0B1F3A 55%, #071328 100%);
+      linear-gradient(160deg, #08182F 0%, #2A2C33 55%, #071328 100%);
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   }
 
@@ -288,7 +289,7 @@
 
   .page-hero .page-tag {
     backdrop-filter: blur(6px);
-    border: 1px solid rgba(0, 187, 169, 0.3);
+    border: 1px solid rgba(255, 106, 19, 0.3);
   }
 
   .page-tag {
@@ -410,7 +411,7 @@
   }
 
   .btn-teal {
-    background-image: linear-gradient(180deg, #14CDBA 0%, var(--primary-teal) 48%, #009C8D 100%);
+    background-image: linear-gradient(180deg, #FF8A2B 0%, var(--primary-teal) 48%, #E5530A 100%);
     color: var(--text-white);
     box-shadow: var(--shadow-teal), inset 0 1px 0 rgba(255, 255, 255, 0.34),
       inset 0 -1px 0 rgba(0, 0, 0, 0.12);
@@ -418,7 +419,7 @@
 
   .btn-teal:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0, 187, 169, 0.34), 0 26px 52px rgba(0, 187, 169, 0.22),
+    box-shadow: 0 10px 20px rgba(255, 106, 19, 0.34), 0 26px 52px rgba(255, 106, 19, 0.22),
       inset 0 1px 0 rgba(255, 255, 255, 0.4);
   }
 
@@ -432,7 +433,7 @@
 
   .btn-outline-light:hover {
     background: rgba(255, 255, 255, 0.13);
-    border-color: rgba(0, 187, 169, 0.65);
+    border-color: rgba(255, 106, 19, 0.65);
     color: #FFFFFF;
     transform: translateY(-2px);
   }
@@ -491,7 +492,7 @@
   .input-group input:focus,
   .input-group select:focus {
     border-color: var(--primary-teal);
-    box-shadow: 0 0 0 2px rgba(0, 187, 169, 0.2);
+    box-shadow: 0 0 0 2px rgba(255, 106, 19, 0.2);
   }
 
   .input-group select option {
@@ -543,23 +544,25 @@
   }
 
   .pl-logo {
-    width: 54px;
-    height: 54px;
-    border-radius: 13px;
-    object-fit: cover;
+    width: 56px;
+    height: 56px;
+    padding: 7px;
+    border-radius: 16px;
+    background: #fff;
+    object-fit: contain;
   }
 
   .pl-wordmark {
     display: flex;
     align-items: baseline;
-    font-size: 34px;
+    font-family: var(--font-display) !important;
+    font-size: 36px;
     font-weight: 800;
-    letter-spacing: -0.5px;
+    letter-spacing: 0.08em;
   }
 
   .pl-zi {
     color: var(--text-white);
-    font-style: italic;
   }
 
   .pl-cab {
@@ -802,7 +805,7 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    background: rgba(0, 187, 169, 0.15);
+    background: rgba(255, 106, 19, 0.15);
     color: var(--primary-teal);
     font-weight: 700;
     letter-spacing: 0.5px;

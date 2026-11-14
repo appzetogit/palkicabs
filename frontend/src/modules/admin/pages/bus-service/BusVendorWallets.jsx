@@ -167,7 +167,7 @@ const BusVendorWallets = () => {
     <div className="space-y-5 p-4 lg:p-8">
       <div>
         <h1 className="text-xl font-bold text-gray-900">Vendor Wallets</h1>
-        <p className="text-sm text-gray-500">Money bus vendors keep with ZI CAB to pay for seats they sell at the counter.</p>
+        <p className="text-sm text-gray-500">Money bus vendors keep with PALKI to pay for seats they sell at the counter.</p>
       </div>
 
       <div className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">

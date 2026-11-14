@@ -27,57 +27,26 @@ export const LANDING_FALLBACK = {
     { icon: 'PhoneCall', title: '24x7 Customer Support', desc: 'Call, WhatsApp or Chat - we are always here.' },
   ],
 
-  drivers: [
-    {
-      name: 'Ramesh Kumar', photo: '/drivers/driver-1.jpg', rating: 4.9, trips: '3,200+ trips',
-      experience: '8 years experience', vehicle: 'Maruti Suzuki Dzire · KA 01 AB 1234',
-      badge: 'Top Driver', city: 'Bengaluru',
-    },
-    {
-      name: 'Suresh Naik', photo: '/drivers/driver-2.jpg', rating: 4.8, trips: '2,100+ trips',
-      experience: '6 years experience', vehicle: 'Toyota Innova Crysta · KA 19 CD 5678',
-      badge: 'Verified', city: 'Mangaluru',
-    },
-    {
-      name: 'Mahesh Patil', photo: '/drivers/driver-3.jpg', rating: 5.0, trips: '1,450+ trips',
-      experience: '5 years experience', vehicle: 'Maruti Suzuki Ertiga · KA 25 EF 9012',
-      badge: 'Top Driver', city: 'Hubballi',
-    },
-    {
-      name: 'Imran Shaikh', photo: '/drivers/driver-4.jpg', rating: 4.9, trips: '2,800+ trips',
-      experience: '10 years experience', vehicle: 'Toyota Fortuner · KA 03 GH 3456',
-      badge: 'Verified', city: 'Bengaluru',
-    },
-  ],
+  // Featured drivers are real people; none are set until the admin adds them.
+  drivers: [],
 
-  partners: [
-    { name: 'TAJ Hotels', subtitle: 'HOTELS' },
-    { name: 'THE LEELA', subtitle: 'PALACES HOTELS RESORTS' },
-    { name: 'NOVOTEL', subtitle: 'HOTELS & RESORTS' },
-    { name: 'HYATT REGENCY', subtitle: '' },
-    { name: 'LuLu MALL', subtitle: 'World of Happiness' },
-    { name: 'Kempegowda Int. Airport', subtitle: 'BENGALURU' },
-  ],
+  partners: [],
 
-  launchCities: [
-    { name: 'Bengaluru', note: 'Head Office & Launch City' },
-    { name: 'Mangaluru', note: 'Coastal Karnataka Operations' },
-    { name: 'Hubballi', note: 'North Karnataka Operations' },
-  ],
+  // Empty until the admin sets the cities PALKI operates in; sections that
+  // list cities stay hidden while this is empty.
+  launchCities: [],
 
+  // Filled in from the admin panel (Website Content -> Contact). Blank fields
+  // are hidden on the site rather than showing placeholder numbers.
   contact: {
-    email: 'zicabofficial@gmail.com',
-    whatsapp: '918904343123',
-    whatsappDisplay: '+91 8904343123',
-    // No toll-free line yet. Every "call us" link dials this field, so it holds
-    // the business number; tollFreeLive stays false, which keeps the toll-free
-    // IVR banner on the contact page hidden until a real line exists.
-    tollFree: '+91 8904343123',
+    email: '',
+    whatsapp: '',
+    whatsappDisplay: '',
+    tollFree: '',
     tollFreeLive: false,
-    address: 'Office No 13, Grand Majestic Mall, Gandhinagar, Bengaluru - 560009',
-    addressShort: 'Office No 13, Grand Majestic Mall, Gandhinagar, Bengaluru',
-    mapsUrl:
-      'https://www.google.com/maps/search/?api=1&query=Grand+Majestic+Mall+Gandhinagar+Bengaluru',
+    address: '',
+    addressShort: '',
+    mapsUrl: '',
   },
 
   // Logo, wordmark and app-store links. The store badges were non-clickable
@@ -87,10 +56,10 @@ export const LANDING_FALLBACK = {
     // Empty: the site uses the logo from General Settings. Set this only to
     // give the website a different logo from the rest of the product.
     logo: '',
-    wordmarkPrimary: 'ZI',
-    wordmarkSecondary: 'CAB',
-    tagline: 'Your Ride. Our Priority.',
-    appBlurb: 'Book rides in seconds, track drivers live, and manage invoices with the ZI CAB app.',
+    wordmarkPrimary: 'PALKI',
+    wordmarkSecondary: '',
+    tagline: 'Your Taxi App',
+    appBlurb: 'Book rides in seconds, track drivers live, and manage invoices with the PALKI app.',
     playStoreUrl: '',
     appStoreUrl: '',
     playStoreQr: '',
@@ -98,9 +67,9 @@ export const LANDING_FALLBACK = {
   },
 
   hero: {
-    titleLine1: 'Your Ride.',
-    titleLine2: 'Our Priority.',
-    subtitle: 'Premium rides, verified drivers and 24x7 support with our dedicated ride coordinators.',
+    titleLine1: 'Your city.',
+    titleLine2: 'Your ride. PALKI.',
+    subtitle: 'Bikes, autos, cabs, parcels and intercity buses — booked in seconds, tracked live, with upfront fares and verified drivers.',
     primaryCta: 'Book a Ride',
     secondaryCta: 'Download App',
     badges: [
@@ -113,7 +82,7 @@ export const LANDING_FALLBACK = {
 
   footer: {
     description:
-      'ZI CAB is a premium cab booking platform providing safe, transparent, and 24x7 verified rides — now live in Bengaluru, Mangaluru and Hubballi.',
+      'PALKI is your taxi app for safe, upfront-priced rides with verified drivers — city rides, outstation trips, parcels and intercity buses.',
     servicesHeading: 'Cab Services',
     cabServices: [
       { label: 'City Ride (Local Cabs)' },
@@ -127,35 +96,26 @@ export const LANDING_FALLBACK = {
       { label: 'Verified Drivers' },
       { label: '24x7 Live SOS' },
     ],
-    copyright: '© 2026 Zicab Group Private Limited. All Rights Reserved.',
+    copyright: '© 2026 Bhaarat Apna Private Limited. All Rights Reserved.',
   },
 
   seo: {
-    title: 'ZI CAB - Your Ride. Our Priority.',
+    title: 'PALKI - Your Taxi App',
     description:
-      'ZI CAB - city, outstation and airport cabs with verified drivers and 24x7 support. Now live in Bengaluru, Mangaluru and Hubballi.',
+      'PALKI - book bikes, autos, cabs, parcels and intercity buses with upfront fares, live tracking and verified drivers.',
   },
 
   about: {
-    tag: 'About ZI CAB',
-    title: 'Redefining Premium Cab Services Across Karnataka',
+    tag: 'About PALKI',
+    title: 'A Taxi App Built on Trust',
     subtitle:
-      'Built on trust, safety, and reliability. Seamless city, outstation and airport rides — now live in Bengaluru, Mangaluru and Hubballi.',
-    stats: [
-      { label: 'Successful Rides', count: 100000, suffix: '+' },
-      { label: 'Customer Rating', value: '4.9 ★' },
-      { label: 'Launch Cities', count: 3 },
-      { label: 'Verified Drivers', count: 500, suffix: '+' },
-    ],
+      'Safe, reliable and fairly priced rides — city, outstation and airport — from a team that puts riders and drivers first.',
+    // Real numbers only; empty until the admin adds them.
+    stats: [],
     foundersTag: 'Leadership',
     foundersHeading: 'Meet the Founders',
-    founders: [
-      { name: 'Shamsher Mohammed', role: 'Founder & CEO', photo: '', bio: '', linkedin: '' },
-      { name: 'Tabrez M J', role: 'Co-Founder', photo: '', bio: '', linkedin: '' },
-      { name: 'Nseer A K', role: 'Co-Founder', photo: '', bio: '', linkedin: '' },
-      { name: 'K M Shareef', role: 'Co-Founder', photo: '', bio: '', linkedin: '' },
-    ],
-    pillarsHeading: 'The Pillars of ZI CAB',
+    founders: [],
+    pillarsHeading: 'The Pillars of PALKI',
     pillars: [
       { icon: 'ShieldCheck', title: 'Safety First', desc: 'All vehicles are equipped with real-time GPS tracking, dual dash cams, and SOS emergency buttons monitored 24x7 by our command center.' },
       { icon: 'Award', title: 'Transparent Pricing', desc: 'Zero surge pricing surprises. What you see during booking is exact fare you pay—inclusive of fuel, toll, and taxes.' },
@@ -165,7 +125,7 @@ export const LANDING_FALLBACK = {
   },
 
   faqs: [
-    { q: 'Does ZI CAB apply surge pricing?', a: 'No. The fare shown at booking is the fare you pay, inclusive of fuel, toll and taxes.' },
+    { q: 'Does PALKI apply surge pricing?', a: 'No. The fare shown at booking is the fare you pay, inclusive of fuel, toll and taxes.' },
     { q: 'What is the cancellation policy?', a: 'Cancellations made within the free window carry no charge. After that, the applicable cancellation fee is shown before you confirm.' },
     { q: 'How do airport pickups work?', a: 'Your driver tracks the flight and waits in the designated pickup area. Free waiting time applies from the time of landing.' },
     { q: 'Which payment methods are accepted?', a: 'Cash to driver, Google Pay, PhonePe, Paytm, credit and debit cards, and net banking.' },
@@ -173,7 +133,7 @@ export const LANDING_FALLBACK = {
   ],
 
   servicesPage: {
-    tag: 'ZI CAB Offerings',
+    tag: 'PALKI Offerings',
     title: 'Comprehensive Mobility Services',
     subtitle:
       'Whether for daily city commute, airport runs, or outstation family road trips, we have the ideal vehicle and service for you.',
@@ -196,8 +156,8 @@ export const LANDING_FALLBACK = {
       { id: 'outstation', title: 'Outstation Travel', tag: 'One-Way & Round Trips', icon: 'Compass', image: '/service-photos/outstation.jpg',
         description: 'Comfortable long-distance travel between cities. Pay only for one-way drop or book a round trip for weekend getaways.',
         features: ['Experienced highway drivers', 'No hidden driver allowance fees', 'Night charge free', 'All India Tourist Permit'] },
-      { id: 'bus', title: 'Zi Bus', tag: 'Intercity Bus Travel', icon: 'Bus',
-        image: '/service-photos/zi-bus.jpg',
+      { id: 'bus', title: 'PALKI Bus', tag: 'Intercity Bus Travel', icon: 'Bus',
+        image: '/service-photos/palki-bus.jpg',
         description: 'Comfortable intercity bus travel. Pick your seat on a live seat map, pre-order highway dhaba meals and track your bus live.',
         features: ['Choose your seat on a live seat map', 'Pre-order highway dhaba meals', 'Live bus tracking', 'Instant e-ticket with PNR'] },
       { id: 'sedan', title: 'Premium Sedan', tag: 'Comfort & Style', icon: 'Car', image: '/service-photos/city-ride.jpg',
@@ -222,11 +182,11 @@ export const LANDING_FALLBACK = {
   },
 
   corporatePage: {
-    tag: 'ZI CAB Business',
+    tag: 'PALKI Business',
     title: 'Enterprise Mobility & Corporate Cab Solutions',
     subtitle:
       'Streamline business travel, airport transfers, and employee commuting with India\u2019s most dependable corporate cab network.',
-    benefitsHeading: 'Why 200+ Enterprises Choose ZI CAB',
+    benefitsHeading: 'Why Businesses Choose PALKI',
     formTitle: 'Request a Corporate Demo',
     formSubtitle: 'Get custom pricing rates for your company in 2 hours.',
     benefits: [
@@ -239,8 +199,8 @@ export const LANDING_FALLBACK = {
 
   partnerPage: {
     tag: 'Attach Cabs & Earn',
-    title: 'Partner With ZI CAB Fleet Network',
-    perksHeading: 'Why Fleet Owners Trust ZI CAB',
+    title: 'Partner With PALKI Fleet Network',
+    perksHeading: 'Why Fleet Owners Trust PALKI',
     earningsHeading: 'Est. Monthly Earnings Calculator',
     formTitle: 'Attach Your Cab Today',
     formSubtitle: 'Fill the form below to receive callback within 30 minutes.',
@@ -258,15 +218,15 @@ export const LANDING_FALLBACK = {
   },
 
   driverPage: {
-    tag: 'Join ZI CAB Captains',
+    tag: 'Join PALKI Captains',
     title: 'Drive With Dignity, Security & Higher Income',
-    perksHeading: 'Captain Benefits at ZI CAB',
+    perksHeading: 'Captain Benefits at PALKI',
     docsHeading: 'Documents Required for Verification',
     formTitle: 'Driver Onboarding Form',
-    formSubtitle: 'Start driving with ZI CAB within 24 hours.',
+    formSubtitle: 'Start driving with PALKI within 24 hours.',
     perks: [
       { icon: 'Clock', title: 'Flexible Shift Timings', desc: 'Choose your own operating hours. Drive outstation long trips or local airport runs whenever you wish.' },
-      { icon: 'Shield', title: '\u20b95 Lakh Insurance Cover', desc: 'Free accidental insurance and medical assistance for every active ZI CAB driver partner.' },
+      { icon: 'Shield', title: '\u20b95 Lakh Insurance Cover', desc: 'Free accidental insurance and medical assistance for every active PALKI driver partner.' },
       { icon: 'Award', title: 'Zero Dry-Run Guarantee', desc: 'Outstation trips are optimized with return bookings to save fuel and maximize profit per trip.' },
     ],
     requiredDocs: [
@@ -279,7 +239,7 @@ export const LANDING_FALLBACK = {
   },
 
   advertisePage: {
-    tag: 'Advertise with ZI CAB',
+    tag: 'Advertise with PALKI',
     title: 'Reach Riders Where Their Attention Already Is',
     inventoryTag: 'Inventory',
     inventoryHeading: 'Where Your Brand Can Appear',
@@ -289,11 +249,11 @@ export const LANDING_FALLBACK = {
     formTitle: 'Advertising Enquiry',
     placements: [
       { icon: 'Smartphone', title: 'Mobile App', desc: 'In-app placements across the rider journey \u2014 from app open to ride completion.', formats: ['Splash / app-open ad', 'In-feed native card', 'Ride-summary banner'] },
-      { icon: 'Globe', title: 'Website', desc: 'Placements on zicab.in pages, seen by riders comparing fares and booking online.', formats: ['Leaderboard banner', 'Sidebar tile', 'Sponsored service block'] },
+      { icon: 'Globe', title: 'Website', desc: 'Placements on palkicabs.buytogetherindia.com pages, seen by riders comparing fares and booking online.', formats: ['Leaderboard banner', 'Sidebar tile', 'Sponsored service block'] },
       { icon: 'Car', title: 'Driver App', desc: 'Reach our driver-partner network \u2014 ideal for fuel, tyres, insurance, EMI and F&B brands.', formats: ['Driver home banner', 'Duty start/end card', 'Partner offer wall'] },
       { icon: 'Image', title: 'Home Screen Banners', desc: 'The highest-visibility slot on the app \u2014 every rider sees it before booking.', formats: ['Hero carousel slide', 'Static top banner', 'City-targeted banner'] },
       { icon: 'CheckCircle2', title: 'Booking Confirmation Screen', desc: 'Shown at peak attention, right after a booking is confirmed and while the rider waits.', formats: ['Confirmation card ad', 'While you wait tile', 'Nearby-brand suggestion'] },
-      { icon: 'Gift', title: 'Offers & Promotions', desc: 'Co-branded coupons and cashback that ride along with a ZI CAB trip.', formats: ['Coupon in offers tab', 'Co-branded promo code', 'Ride-and-win campaign'] },
+      { icon: 'Gift', title: 'Offers & Promotions', desc: 'Co-branded coupons and cashback that ride along with a PALKI trip.', formats: ['Coupon in offers tab', 'Co-branded promo code', 'Ride-and-win campaign'] },
       { icon: 'BellRing', title: 'Push Notifications', desc: 'Opt-in, frequency-capped pushes segmented by city, ride type and rider behaviour.', formats: ['Sponsored push', 'Geo-fenced alert', 'Weekend campaign blast'] },
     ],
     industries: [

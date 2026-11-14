@@ -1468,7 +1468,7 @@ const cancelAdminBusBookingSeatsClaimed = async (req, res) => {
     bookingId: booking._id,
   });
   if (remainingActiveSeatCount <= 0) {
-    await cancelAndRefundFoodForBooking(booking, { reason: 'Cancelled by ZI Bus admin', by: 'admin' });
+    await cancelAndRefundFoodForBooking(booking, { reason: 'Cancelled by PALKI Bus admin', by: 'admin' });
   }
 
   const hydratedBooking = await BusBooking.findById(booking._id)
@@ -1763,8 +1763,8 @@ export const sendTestMail = asyncHandler(async (req, res) => {
   try {
     await sendEmail({
       to,
-      subject: 'ZI CAB SMTP test',
-      text: `This is a test message from the ZI CAB admin panel.
+      subject: 'PALKI SMTP test',
+      text: `This is a test message from the PALKI admin panel.
 
 SMTP host: ${status.host}:${status.port}
 If you received this, outgoing mail works.`,

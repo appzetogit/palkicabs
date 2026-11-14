@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { AlertTriangle, Radio, X, Users } from 'lucide-react';
 import userBusService, { BUS_SEAT_EVENTS } from '../../services/busService';
 import { socketService } from '../../../../shared/api/socket';
-import { BusScreen, BusTopBar, EmptyState, FooterBar, Skeleton } from '../../components/bus/ZiBusUi';
-import { formatDay, formatRupees, routePrefixFor, toDateKey } from '../../components/bus/zibusFormat';
+import { BusScreen, BusTopBar, EmptyState, FooterBar, Skeleton } from '../../components/bus/PalkiBusUi';
+import { formatDay, formatRupees, routePrefixFor, toDateKey } from '../../components/bus/palkibusFormat';
 import { buildBusRouteState, toPlainData } from './busNavigationState';
 
 const MAX_SEATS = 6;

@@ -20,11 +20,11 @@ const busSeatHoldSchema = new mongoose.Schema(
       default: null,
       index: true,
     },
-    // Where the lock came from: 'zibus' for our own apps and panels, or the
+    // Where the lock came from: 'palkibus' for our own apps and panels, or the
     // code of the external channel that sold the seat.
     source: {
       type: String,
-      default: 'zibus',
+      default: 'palkibus',
       trim: true,
     },
     scheduleId: {

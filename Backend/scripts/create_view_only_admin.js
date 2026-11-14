@@ -5,9 +5,9 @@
 // The password is read from the ADMIN_PW environment variable so it never
 // appears in the command line or shell history; prompt for it with `read -s`:
 //
-//   cd /root/zicab/Backend
+//   cd /root/palki/Backend
 //   read -s -p "Password: " ADMIN_PW && echo && export ADMIN_PW
-//   node scripts/create_view_only_admin.js --email viewer@zicab.in --name "Test Viewer"
+//   node scripts/create_view_only_admin.js --email viewer@example.com --name "Test Viewer"
 //   unset ADMIN_PW
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';

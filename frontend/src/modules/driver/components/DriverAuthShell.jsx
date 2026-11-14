@@ -11,9 +11,9 @@ const OWNER_PORTALS = ['Your vehicles and drivers', 'Bus services and bookings',
 /// form on a laptop, a short band above it on a phone.
 const DriverAuthShell = ({ isOwnerPortal = false, isBusPortal = false, children }) => {
   const { settings } = useSettings();
-  const appName = settings.general?.app_name || 'ZI CAB';
+  const appName = settings.general?.app_name || 'PALKI';
   const appLogo = settings.general?.logo || settings.customization?.logo || settings.general?.favicon || '';
-  const brandName = isBusPortal ? 'ZI Bus' : appName.split(' - ')[0];
+  const brandName = isBusPortal ? 'PALKI Bus' : appName.split(' - ')[0];
   const portals = isBusPortal ? BUS_PORTALS : isOwnerPortal ? OWNER_PORTALS : DRIVER_PORTALS;
   const headline = isBusPortal
     ? 'Your bus, all in one place.'

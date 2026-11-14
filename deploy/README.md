@@ -1,55 +1,57 @@
 # Deployment
 
-Copies of the production server config, so a rebuilt box can be brought back to
-the same state. These files are **not** applied automatically — they are a record
-of what is running.
+PALKI runs on a **shared server** (`145.223.21.188`) next to many other
+projects. Everything below is scoped to PALKI alone: its own folder, port,
+database, PM2 process and nginx site. Never restart nginx, PM2 as a whole, or
+another project's process while deploying this one.
 
-Live on `zicab.in`:
+Live at **https://palkicabs.buytogetherindia.com**.
 
-| File | Installed at |
+| What | Where |
 |---|---|
-| `nginx/zicab.conf` | `/etc/nginx/sites-available/zicab` (symlinked into `sites-enabled`) |
-| `nginx/zicab-upstream.conf` | `/etc/nginx/conf.d/zicab-upstream.conf` |
+| Code (git clone of `appzetogit/palkicabs`) | `/opt/palkicabs` |
+| Backend process | PM2 `palkicabs-backend` → `127.0.0.1:5025` (see `Backend/ecosystem.config.cjs`) |
+| Database | MongoDB `127.0.0.1:27017`, database `palkicabs_taxi` |
+| Frontend | static build served from `/opt/palkicabs/frontend/dist` |
+| nginx site | `nginx/palkicabs.buytogetherindia.com.conf` → `/etc/nginx/sites-available/` (symlinked into `sites-enabled`) |
+| SSL | Let's Encrypt via certbot (`--nginx`), auto-renewed by `certbot.timer` |
+| Secrets | `Backend/.env`, `Backend/firebase-service-account.json`, `frontend/.env.production` — on the server only, git-ignored |
 
-The app itself runs under PM2 as four instances (`zicab-api-5000` … `5003`),
-which nginx load-balances via the upstream block.
+The nginx file in this folder is a copy of what is installed, so a rebuilt box
+can be brought back to the same state. It is **not** applied automatically.
 
-## Frontend deploys
+## Deploying an update
 
 ```
-cd Backend/../frontend && npm run build
-rsync -a --delete dist/ /var/www/zicab/
+cd /opt/palkicabs
+git pull
+cd frontend && npm ci && npm run build      # only when frontend/ changed
+cd ../Backend && npm ci --omit=dev          # only when Backend/package*.json changed
+pm2 restart palkicabs-backend --update-env  # only when Backend/ or .env changed
 ```
 
-`--delete` is deliberate: it clears the previous build's hashed asset files so
-they do not accumulate.
+`--update-env` matters when `.env` has changed; without it the process keeps its
+old environment.
 
-### Why `index.html` must not be cached
+## Why `index.html` must not be cached
 
-`index.html` names the hashed chunks, and each deploy replaces them and removes
-the previous set. If a browser holds a stale `index.html`, it requests chunk
-filenames that no longer exist, gets 404s, and renders a **blank page** — the
-shell paints but nothing else does.
+`index.html` names the hashed chunks, and each build replaces them. If a browser
+holds a stale `index.html`, it requests chunk filenames that no longer exist,
+gets 404s, and renders a **blank page**.
 
-This happened in production: `index.html` was served with only `Last-Modified`
-and `ETag`, so browsers cached it heuristically, and anyone with a page open
-across a deploy got a blank screen until they hard-refreshed.
-
-The config therefore splits the two:
+The nginx config therefore splits the two:
 
 - `location = /index.html` → `no-cache, must-revalidate`
 - `location /assets/` → `public, immutable`, one year
 
-The entry point is revalidated every visit; the fingerprinted assets it points to
-are cached hard. Keep that split if the config is ever rewritten.
+Keep that split if the config is ever rewritten.
 
-## Backend deploys
+## nginx changes
 
-Backend changes need no build. After editing files under `Backend/`:
+Edit only PALKI's site file, then:
 
 ```
-pm2 restart zicab-api-5000 zicab-api-5001 zicab-api-5002 zicab-api-5003 --update-env
+nginx -t && systemctl reload nginx
 ```
 
-`--update-env` matters when `.env` has changed; without it the processes keep
-their old environment.
+`reload`, never `restart`: a reload keeps every other site on the box serving.

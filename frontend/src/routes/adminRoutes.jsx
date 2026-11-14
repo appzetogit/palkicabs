@@ -13,12 +13,12 @@ import {
   AdminBusVendorWallets,
   AdminChat,
   AdminBusCommissionManager,
-  AdminZibusBookingChannels,
-  AdminZibusBusOperators,
-  AdminZibusDhabaOrders,
-  AdminZibusDhabaPartners,
-  AdminZibusFoodCategories,
-  AdminZibusSeatInventory,
+  AdminPalkibusBookingChannels,
+  AdminPalkibusBusOperators,
+  AdminPalkibusDhabaOrders,
+  AdminPalkibusDhabaPartners,
+  AdminPalkibusFoodCategories,
+  AdminPalkibusSeatInventory,
   AdminBusServiceDetails,
   AdminBusServiceManager,
   AdminCareerApplications,
@@ -227,17 +227,17 @@ const adminRoutes = (
       <Route path="bus-service/commission" element={<AdminBusCommissionManager />} />
       <Route path="bus-service/bookings" element={<AdminBusBookingManager />} />
       <Route path="bus-service/vendor-wallets" element={<AdminBusVendorWallets />} />
-      <Route path="bus-service/inventory" element={<AdminZibusSeatInventory />} />
-      <Route path="bus-service/operators" element={<AdminZibusBusOperators />} />
-      <Route path="bus-service/channels" element={<AdminZibusBookingChannels />} />
+      <Route path="bus-service/inventory" element={<AdminPalkibusSeatInventory />} />
+      <Route path="bus-service/operators" element={<AdminPalkibusBusOperators />} />
+      <Route path="bus-service/channels" element={<AdminPalkibusBookingChannels />} />
       <Route path="bus-service/dhabas" element={<Navigate to="/admin/dhabas" replace />} />
       <Route path="bus-service/dhaba-orders" element={<Navigate to="/admin/dhabas/orders" replace />} />
-      <Route path="dhabas" element={<AdminZibusDhabaPartners />} />
-      <Route path="dhabas/pending" element={<AdminZibusDhabaPartners />} />
-      <Route path="dhabas/rejected" element={<AdminZibusDhabaPartners />} />
-      <Route path="dhabas/payouts" element={<AdminZibusDhabaPartners />} />
-      <Route path="dhabas/orders" element={<AdminZibusDhabaOrders />} />
-      <Route path="dhabas/food-categories" element={<AdminZibusFoodCategories />} />
+      <Route path="dhabas" element={<AdminPalkibusDhabaPartners />} />
+      <Route path="dhabas/pending" element={<AdminPalkibusDhabaPartners />} />
+      <Route path="dhabas/rejected" element={<AdminPalkibusDhabaPartners />} />
+      <Route path="dhabas/payouts" element={<AdminPalkibusDhabaPartners />} />
+      <Route path="dhabas/orders" element={<AdminPalkibusDhabaOrders />} />
+      <Route path="dhabas/food-categories" element={<AdminPalkibusFoodCategories />} />
       <Route path="bus-service/:id" element={<AdminBusServiceDetails />} />
       <Route path="pooling" element={<Navigate to="/admin/pooling/routes" replace />} />
       <Route path="pooling/routes" element={<AdminPoolingManager />} />

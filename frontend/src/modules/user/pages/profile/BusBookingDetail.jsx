@@ -4,8 +4,8 @@ import { MapPin, Phone, ReceiptText, Share2, ShieldCheck, Star, Ticket, Utensils
 import toast from 'react-hot-toast';
 import userBusService from '../../services/busService';
 import BusLiveTrackingCard from '../../components/bus/BusLiveTrackingCard';
-import { BusScreen, BusTopBar, EmptyState, SectionTitle, Skeleton, TripLine } from '../../components/bus/ZiBusUi';
-import { formatDay, formatRupees, routePrefixFor } from '../../components/bus/zibusFormat';
+import { BusScreen, BusTopBar, EmptyState, SectionTitle, Skeleton, TripLine } from '../../components/bus/PalkiBusUi';
+import { formatDay, formatRupees, routePrefixFor } from '../../components/bus/palkibusFormat';
 
 const unwrapPayload = (response) => response?.data?.data || response?.data || response || null;
 
@@ -117,9 +117,9 @@ const BusBookingDetail = () => {
   const rules = booking.cancellationPolicy?.rules || [];
 
   const share = async () => {
-    const text = `ZI Bus ticket ${pnr}: ${bus.fromCity} to ${bus.toCity}, ${formatDay(booking.travelDate)} ${bus.departure || ''}. Seat ${activeLabels.join(', ')}.`;
+    const text = `PALKI Bus ticket ${pnr}: ${bus.fromCity} to ${bus.toCity}, ${formatDay(booking.travelDate)} ${bus.departure || ''}. Seat ${activeLabels.join(', ')}.`;
     try {
-      if (navigator.share) await navigator.share({ title: 'ZI Bus ticket', text });
+      if (navigator.share) await navigator.share({ title: 'PALKI Bus ticket', text });
       else {
         await navigator.clipboard?.writeText(text);
         toast.success('Ticket details copied');

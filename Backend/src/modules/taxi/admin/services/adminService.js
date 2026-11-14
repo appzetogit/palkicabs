@@ -5524,7 +5524,7 @@ export const updateDriver = async (id, payload, currentAdmin = null) => {
     update.serviceCategories = normalizeDriverServiceCategories(serviceCategoriesValue, update.registerFor || 'taxi');
   }
 
-  // The cab types the driver gets requests for (ZI Cab AC, Non-AC, Cab + ...).
+  // The cab types the driver gets requests for (PALKI AC, Non-AC, Cab + ...).
   // A list replaces the whole enrolment, first entry primary - the same shape
   // onboarding saves. The generic family and icon come from the first type, so
   // an admin correction can't leave the marker or dispatch on the old one.
@@ -12963,6 +12963,6 @@ export const getAdminEarningDetails = async (query = {}) => {
     }
     case 'commission':
     default:
-      return rideResult('Total commission', 'Commission ZI CAB earned on each completed trip.', rides, 'Commission', money(summary.adminCommission));
+      return rideResult('Total commission', 'Commission PALKI earned on each completed trip.', rides, 'Commission', money(summary.adminCommission));
   }
 };

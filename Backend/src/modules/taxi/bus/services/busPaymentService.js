@@ -5,7 +5,7 @@ import { publishBusSeatChange } from './busSeatSyncService.js';
 import { razorpayApi, refundRazorpayPayment } from './busRefundService.js';
 
 /**
- * Confirming and refunding paid ZI Bus bookings.
+ * Confirming and refunding paid PALKI Bus bookings.
  *
  * Every path that acts on a booking's payment - the rider's verify call (which
  * a double tap can send twice), the reconciliation job, four API processes -

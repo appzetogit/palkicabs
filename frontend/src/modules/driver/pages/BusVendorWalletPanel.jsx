@@ -35,7 +35,7 @@ const BusVendorWalletPanel = ({ wallet, onChange }) => {
         <p className="mt-2 text-sm text-slate-500">
           {wallet?.prepaidRequired
             ? `Each seat you sell at the counter is paid from this wallet (or paid online) before it is booked. Seats stay held for ${wallet?.holdMinutes || 10} minutes while you pay.`
-            : 'Counter seats can be paid from this wallet. ZI CAB may switch on paying first for every counter seat.'}
+            : 'Counter seats can be paid from this wallet. PALKI may switch on paying first for every counter seat.'}
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           {[500, 1000, 2000, 5000].map((value) => (

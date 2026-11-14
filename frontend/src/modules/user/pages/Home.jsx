@@ -8,7 +8,6 @@ import LocationMapSection from '../components/LocationMapSection';
 import ActionsSection from '../components/ActionsSection';
 import PromoBanners from '../components/PromoBanners';
 import ExplorerSection from '../components/ExplorerSection';
-import CheckUsOutSection from '../components/CheckUsOutSection';
 // ... removed import ...
 
 import taxiFallback from '../../../assets/user-app/taxi.png';

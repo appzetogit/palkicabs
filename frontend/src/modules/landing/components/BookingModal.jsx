@@ -7,8 +7,8 @@ const BookingModal = ({ isOpen, onClose, selectedVehicle = null }) => {
   const { contact: CONTACT } = useLanding();
   const [step, setStep] = useState(1);
   const [tripType, setTripType] = useState('city');
-  const [pickup, setPickup] = useState('Gandhinagar, Bengaluru');
-  const [drop, setDrop] = useState('Kempegowda Int. Airport (BLR)');
+  const [pickup, setPickup] = useState('');
+  const [drop, setDrop] = useState('');
   const [vehicle, setVehicle] = useState(selectedVehicle || 'Dzire');
   const [date, setDate] = useState('2026-08-06');
   const [passengers, setPassengers] = useState('2');
@@ -75,7 +75,7 @@ const BookingModal = ({ isOpen, onClose, selectedVehicle = null }) => {
         {/* Header */}
         <div className="modal-header">
           <div className="modal-title-group">
-            <span className="modal-badge">ZI CAB Dispatch</span>
+            <span className="modal-badge">PALKI Dispatch</span>
             <h3 className="modal-title">
               {step === 1 && 'Plan Your Ride'}
               {step === 2 && 'Passenger Details'}
@@ -104,7 +104,7 @@ const BookingModal = ({ isOpen, onClose, selectedVehicle = null }) => {
             </div>
 
             <div className="input-group">
-              <label><MapPin size={16} color="#00BBA9" /> Pickup Location</label>
+              <label><MapPin size={16} color="#FF6A13" /> Pickup Location</label>
               <input 
                 type="text" 
                 value={pickup} 
@@ -114,7 +114,7 @@ const BookingModal = ({ isOpen, onClose, selectedVehicle = null }) => {
             </div>
 
             <div className="input-group">
-              <label><MapPin size={16} color="#00BBA9" /> Drop Location</label>
+              <label><MapPin size={16} color="#FF6A13" /> Drop Location</label>
               <input 
                 type="text" 
                 value={drop} 
@@ -125,7 +125,7 @@ const BookingModal = ({ isOpen, onClose, selectedVehicle = null }) => {
 
             <div className="input-row">
               <div className="input-group">
-                <label><Calendar size={16} color="#00BBA9" /> Date & Time</label>
+                <label><Calendar size={16} color="#FF6A13" /> Date & Time</label>
                 <input 
                   type="date" 
                   value={date} 
@@ -134,7 +134,7 @@ const BookingModal = ({ isOpen, onClose, selectedVehicle = null }) => {
               </div>
 
               <div className="input-group">
-                <label><User size={16} color="#00BBA9" /> Passengers</label>
+                <label><User size={16} color="#FF6A13" /> Passengers</label>
                 <select value={passengers} onChange={(e) => setPassengers(e.target.value)}>
                   <option value="1">1 Passenger</option>
                   <option value="2">2 Passengers</option>
@@ -145,7 +145,7 @@ const BookingModal = ({ isOpen, onClose, selectedVehicle = null }) => {
             </div>
 
             <div className="vehicle-selector">
-              <label className="section-sublabel"><Car size={16} color="#00BBA9" /> Select Preferred Vehicle</label>
+              <label className="section-sublabel"><Car size={16} color="#FF6A13" /> Select Preferred Vehicle</label>
               <div className="vehicle-grid">
                 {vehicleOptions.map((v) => (
                   <div 
@@ -220,7 +220,7 @@ const BookingModal = ({ isOpen, onClose, selectedVehicle = null }) => {
             )}
 
             <div className="security-notice">
-              <Shield size={16} color="#00BBA9" />
+              <Shield size={16} color="#FF6A13" />
               <span>Zero cancellation fee • Pay directly to driver or via UPI after trip</span>
             </div>
 
@@ -243,7 +243,7 @@ const BookingModal = ({ isOpen, onClose, selectedVehicle = null }) => {
         {step === 3 && (
           <div className="modal-body text-center py-6">
             <div className="success-icon-box">
-              <CheckCircle2 size={56} color="#00BBA9" />
+              <CheckCircle2 size={56} color="#FF6A13" />
             </div>
             <h4 className="confirm-title">Cab Booked Successfully!</h4>
             <p className="confirm-text">
@@ -251,7 +251,7 @@ const BookingModal = ({ isOpen, onClose, selectedVehicle = null }) => {
             </p>
             <div className="driver-assign-card">
               <p>📍 Our team will call you shortly to confirm the driver and fare.</p>
-              <p>📞 Call us: {CONTACT.tollFree}</p>
+              {CONTACT.tollFree && <p>📞 Call us: {CONTACT.tollFree}</p>}
             </div>
 
             <button className="btn btn-teal w-full mt-6" onClick={handleReset}>
@@ -262,14 +262,14 @@ const BookingModal = ({ isOpen, onClose, selectedVehicle = null }) => {
       </div>
 
       <style>{`
-        .zicab-landing {
+        .palki-landing {
           .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(7, 21, 43, 0.85);
+            background-color: rgba(31, 33, 38, 0.85);
             backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
@@ -279,8 +279,8 @@ const BookingModal = ({ isOpen, onClose, selectedVehicle = null }) => {
           }
 
           .modal-card {
-            background-color: #0C1B30;
-            border: 1px solid rgba(0, 187, 169, 0.3);
+            background-color: #33363E;
+            border: 1px solid rgba(255, 106, 19, 0.3);
             border-radius: 16px;
             width: 100%;
             max-width: 540px;
@@ -308,15 +308,15 @@ const BookingModal = ({ isOpen, onClose, selectedVehicle = null }) => {
             align-items: flex-start;
             padding: 20px 24px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            background-color: #07152B;
+            background-color: #1F2126;
           }
 
           .modal-badge {
             display: inline-block;
             font-size: 11px;
             font-weight: 600;
-            color: #00BBA9;
-            background: rgba(0, 187, 169, 0.12);
+            color: #FF6A13;
+            background: rgba(255, 106, 19, 0.12);
             padding: 2px 8px;
             border-radius: 4px;
             margin-bottom: 4px;
@@ -370,7 +370,7 @@ const BookingModal = ({ isOpen, onClose, selectedVehicle = null }) => {
           }
 
           .tab-pill.active {
-            background-color: #00BBA9;
+            background-color: #FF6A13;
             color: #FFFFFF;
             font-weight: 600;
           }
@@ -407,12 +407,12 @@ const BookingModal = ({ isOpen, onClose, selectedVehicle = null }) => {
           }
 
           .vehicle-card-item:hover {
-            border-color: rgba(0, 187, 169, 0.5);
+            border-color: rgba(255, 106, 19, 0.5);
           }
 
           .vehicle-card-item.selected {
-            border-color: #00BBA9;
-            background: rgba(0, 187, 169, 0.12);
+            border-color: #FF6A13;
+            background: rgba(255, 106, 19, 0.12);
           }
 
           .v-item-header {
@@ -428,7 +428,7 @@ const BookingModal = ({ isOpen, onClose, selectedVehicle = null }) => {
           }
 
           .v-rate {
-            color: #00BBA9;
+            color: #FF6A13;
           }
 
           .v-item-sub {
@@ -465,11 +465,11 @@ const BookingModal = ({ isOpen, onClose, selectedVehicle = null }) => {
           }
 
           .sum-val.highlight {
-            color: #00BBA9;
+            color: #FF6A13;
           }
 
           .sum-val.fare {
-            color: #00BBA9;
+            color: #FF6A13;
             font-weight: 700;
             font-size: 14px;
           }
@@ -489,7 +489,7 @@ const BookingModal = ({ isOpen, onClose, selectedVehicle = null }) => {
             gap: 8px;
             font-size: 12px;
             color: #94A3B8;
-            background: rgba(0, 187, 169, 0.06);
+            background: rgba(255, 106, 19, 0.06);
             padding: 8px 12px;
             border-radius: 6px;
           }
@@ -522,8 +522,8 @@ const BookingModal = ({ isOpen, onClose, selectedVehicle = null }) => {
           }
 
           .driver-assign-card {
-            background: rgba(0, 187, 169, 0.08);
-            border: 1px solid rgba(0, 187, 169, 0.2);
+            background: rgba(255, 106, 19, 0.08);
+            border: 1px solid rgba(255, 106, 19, 0.2);
             border-radius: 10px;
             padding: 14px;
             margin-top: 14px;

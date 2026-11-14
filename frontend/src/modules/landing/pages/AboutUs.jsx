@@ -29,6 +29,7 @@ const AboutUs = ({ openBookingModal }) => {
       </div>
 
       {/* Stats Counter Bar */}
+      {stats.length > 0 && (
       <section className="stats-section">
         <div className="container">
           <div className="stats-grid" data-reveal-stagger>
@@ -52,6 +53,7 @@ const AboutUs = ({ openBookingModal }) => {
           </div>
         </div>
       </section>
+      )}
 
       {/* Story & Mission Section */}
       <section className="section-padding story-section">
@@ -59,23 +61,23 @@ const AboutUs = ({ openBookingModal }) => {
           <div className="story-content" data-reveal>
             <h2 className="section-title">Our Story & Mission</h2>
             <p className="body-text">
-              ZI CAB was founded with a clear mission: to eliminate ride cancellations, surge pricing shocks, and unverified driver risks for travelers in Karnataka.
+              PALKI was founded with a clear mission: to eliminate ride cancellations, surge pricing shocks, and unverified driver risks for every rider.
             </p>
             <p className="body-text">
-              Whether you need an early morning 4 AM airport cab in Bengaluru, an executive sedan for corporate travel, or a family SUV for an outstation weekend trip to Coorg, ZI CAB ensures guaranteed on-time pickup with professional drivers.
+              Whether you need an early morning 4 AM airport cab, an executive sedan for corporate travel, or a family SUV for an outstation weekend trip, PALKI ensures guaranteed on-time pickup with professional drivers.
             </p>
             
             <div className="mission-list">
               <div className="m-item">
-                <CheckCircle2 size={18} color="#00BBA9" />
+                <CheckCircle2 size={18} color="#FF6A13" />
                 <span>100% Guaranteed On-Time Pickups</span>
               </div>
               <div className="m-item">
-                <CheckCircle2 size={18} color="#00BBA9" />
+                <CheckCircle2 size={18} color="#FF6A13" />
                 <span>Zero Cancellation Fees for Riders</span>
               </div>
               <div className="m-item">
-                <CheckCircle2 size={18} color="#00BBA9" />
+                <CheckCircle2 size={18} color="#FF6A13" />
                 <span>Clean, Sanitized & Premium Fleet</span>
               </div>
             </div>
@@ -88,7 +90,7 @@ const AboutUs = ({ openBookingModal }) => {
           <div className="story-image-box" data-reveal>
             <img 
               src="https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80" 
-              alt="ZI CAB Premium Ride"
+              alt="PALKI Premium Ride"
               className="story-img"
             />
             <div className="story-badge">
@@ -100,6 +102,7 @@ const AboutUs = ({ openBookingModal }) => {
       </section>
 
       {/* Founders Section */}
+      {founders.length > 0 && (
       <section className="section-padding founders-section">
         <div className="container">
           <div className="text-center mb-12">
@@ -139,28 +142,34 @@ const AboutUs = ({ openBookingModal }) => {
           </div>
         </div>
       </section>
+      )}
 
-      {/* Office & Launch Cities */}
+      {/* Office & cities — only once the admin has set them. */}
+      {(CONTACT.address || LAUNCH_CITIES.length > 0) && (
       <section className="section-padding presence-section">
         <div className="container">
           <div className="text-center mb-12">
             <span className="page-tag">Our Presence</span>
-            <h2 className="section-title light">Office & Launch Cities</h2>
+            <h2 className="section-title light">Where to Find Us</h2>
           </div>
 
           <div className="presence-grid">
+            {CONTACT.address && (
             <div className="presence-office" data-reveal>
-              <h3 className="presence-heading"><MapPin size={18} color="#00BBA9" /> Head Office</h3>
+              <h3 className="presence-heading"><MapPin size={18} color="#FF6A13" /> Head Office</h3>
               <p className="presence-addr">{CONTACT.address}</p>
+              {CONTACT.mapsUrl && (
               <a className="btn btn-teal" href={CONTACT.mapsUrl} target="_blank" rel="noreferrer">
                 <Navigation size={16} /> View on Google Maps
               </a>
+              )}
             </div>
+            )}
 
             <div className="presence-cities" data-reveal-stagger>
               {LAUNCH_CITIES.map((c) => (
                 <div key={c.name} className="presence-city-card">
-                  <MapPin size={20} color="#00BBA9" />
+                  <MapPin size={20} color="#FF6A13" />
                   <h4>{c.name}</h4>
                   <span>{c.note}</span>
                 </div>
@@ -169,6 +178,7 @@ const AboutUs = ({ openBookingModal }) => {
           </div>
         </div>
       </section>
+      )}
 
       {/* Pillars Section */}
       <section className="section-padding pillars-section">
@@ -181,7 +191,7 @@ const AboutUs = ({ openBookingModal }) => {
               return (
                 <div key={idx} className="pillar-card">
                   <div className="p-icon-wrap">
-                    <Icon size={28} color="#00BBA9" />
+                    <Icon size={28} color="#FF6A13" />
                   </div>
                   <h3 className="p-title">{p.title}</h3>
                   <p className="p-desc">{p.desc}</p>
@@ -193,9 +203,9 @@ const AboutUs = ({ openBookingModal }) => {
       </section>
 
       <style>{`
-        .zicab-landing {
+        .palki-landing {
           .stats-section {
-            background-color: #07152B;
+            background-color: #1F2126;
             border-top: 1px solid rgba(255, 255, 255, 0.08);
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             padding: 30px 0;
@@ -212,7 +222,7 @@ const AboutUs = ({ openBookingModal }) => {
             display: block;
             font-size: 36px;
             font-weight: 800;
-            color: #00BBA9;
+            color: #FF6A13;
           }
 
           .stat-label {
@@ -252,7 +262,7 @@ const AboutUs = ({ openBookingModal }) => {
             position: relative;
             border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 20px 40px rgba(11, 31, 58, 0.15);
+            box-shadow: 0 20px 40px rgba(42, 44, 51, 0.15);
           }
 
           .story-img {
@@ -266,9 +276,9 @@ const AboutUs = ({ openBookingModal }) => {
             position: absolute;
             bottom: 20px;
             left: 20px;
-            background: rgba(7, 21, 43, 0.9);
+            background: rgba(31, 33, 38, 0.9);
             backdrop-filter: blur(8px);
-            border: 1px solid #00BBA9;
+            border: 1px solid #FF6A13;
             padding: 12px 20px;
             border-radius: 12px;
             color: #FFFFFF;
@@ -278,7 +288,7 @@ const AboutUs = ({ openBookingModal }) => {
             display: block;
             font-size: 22px;
             font-weight: 800;
-            color: #00BBA9;
+            color: #FF6A13;
           }
 
           .badge-txt {
@@ -293,7 +303,7 @@ const AboutUs = ({ openBookingModal }) => {
           }
 
           .dark-tag {
-            background: rgba(0, 187, 169, 0.1);
+            background: rgba(255, 106, 19, 0.1);
           }
 
           .founders-grid {
@@ -315,7 +325,7 @@ const AboutUs = ({ openBookingModal }) => {
           }
 
           .founder-card:hover {
-            border-color: #00BBA9;
+            border-color: #FF6A13;
             box-shadow: var(--shadow-md);
             transform: translateY(-4px);
           }
@@ -337,7 +347,7 @@ const AboutUs = ({ openBookingModal }) => {
             display: block;
             font-size: 12.5px;
             font-weight: 600;
-            color: #00BBA9;
+            color: #FF6A13;
             margin-bottom: 8px;
           }
 
@@ -358,12 +368,12 @@ const AboutUs = ({ openBookingModal }) => {
           }
 
           .founder-link:hover {
-            color: #00BBA9;
+            color: #FF6A13;
           }
 
           /* Presence */
           .presence-section {
-            background: linear-gradient(135deg, #07152B 0%, #0B1F3A 100%);
+            background: linear-gradient(135deg, #1F2126 0%, #2A2C33 100%);
             color: #FFFFFF;
           }
 
@@ -376,7 +386,7 @@ const AboutUs = ({ openBookingModal }) => {
 
           .presence-office {
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(0, 187, 169, 0.3);
+            border: 1px solid rgba(255, 106, 19, 0.3);
             border-radius: 16px;
             padding: 28px;
           }
@@ -414,7 +424,7 @@ const AboutUs = ({ openBookingModal }) => {
           }
 
           .presence-city-card:hover {
-            border-color: #00BBA9;
+            border-color: #FF6A13;
             transform: translateY(-4px);
           }
 
@@ -450,14 +460,14 @@ const AboutUs = ({ openBookingModal }) => {
 
           .pillar-card:hover {
             transform: translateY(-4px);
-            border-color: #00BBA9;
+            border-color: #FF6A13;
             box-shadow: var(--shadow-md);
           }
 
           .p-icon-wrap {
             width: 52px;
             height: 52px;
-            background: rgba(0, 187, 169, 0.12);
+            background: rgba(255, 106, 19, 0.12);
             border-radius: 12px;
             display: flex;
             align-items: center;

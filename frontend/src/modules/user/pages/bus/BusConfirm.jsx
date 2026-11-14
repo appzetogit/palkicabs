@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { CheckCircle2, Home, MapPin, Navigation, Phone, Share2, Ticket, UtensilsCrossed } from 'lucide-react';
 import { scheduleBusBookingReminders } from '../../utils/upcomingRideReminderService';
 import userBusService from '../../services/busService';
-import { BusScreen, Skeleton, TripLine } from '../../components/bus/ZiBusUi';
-import { formatDay, formatRupees, routePrefixFor } from '../../components/bus/zibusFormat';
+import { BusScreen, Skeleton, TripLine } from '../../components/bus/PalkiBusUi';
+import { formatDay, formatRupees, routePrefixFor } from '../../components/bus/palkibusFormat';
 import { toPlainData } from './busNavigationState';
 
 const BusConfirm = () => {
@@ -38,9 +38,9 @@ const BusConfirm = () => {
   const total = Number(booking.amount || 0) + Number(booking.foodAmount || 0);
 
   const share = async () => {
-    const text = `ZI Bus ticket ${pnr}: ${bus.fromCity || fromCity} to ${bus.toCity || toCity}, ${formatDay(booking.travelDate || date)} ${bus.departure || ''}. Seat ${seats.join(', ')}.`;
+    const text = `PALKI Bus ticket ${pnr}: ${bus.fromCity || fromCity} to ${bus.toCity || toCity}, ${formatDay(booking.travelDate || date)} ${bus.departure || ''}. Seat ${seats.join(', ')}.`;
     try {
-      if (navigator.share) await navigator.share({ title: 'ZI Bus ticket', text });
+      if (navigator.share) await navigator.share({ title: 'PALKI Bus ticket', text });
       else await navigator.clipboard?.writeText(text);
     } catch {
       // Share sheet closed.

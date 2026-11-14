@@ -329,7 +329,7 @@ export const adminTripInventory = async (req, res) => {
 
   ok(res, {
     ...snapshot,
-    bookedBySource: bySource.map((row) => ({ source: row._id || 'zibus', seats: row.seats })),
+    bookedBySource: bySource.map((row) => ({ source: row._id || 'palkibus', seats: row.seats })),
     passengers: bookings.map((booking) => {
       const cancelled = new Set((booking.cancelledSeats || []).map((item) => String(item.seatId)));
       return {

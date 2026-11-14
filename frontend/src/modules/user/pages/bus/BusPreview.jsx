@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BusFront, Clock3, Luggage, MapPin, Phone, ShieldCheck, Sparkles, Star, Ticket, UtensilsCrossed } from 'lucide-react';
 import userBusService from '../../services/busService';
-import { BusScreen, BusTopBar, FooterBar, SectionTitle, TripLine } from '../../components/bus/ZiBusUi';
-import { formatDay, formatDuration, formatRupees, routePrefixFor } from '../../components/bus/zibusFormat';
+import { BusScreen, BusTopBar, FooterBar, SectionTitle, TripLine } from '../../components/bus/PalkiBusUi';
+import { formatDay, formatDuration, formatRupees, routePrefixFor } from '../../components/bus/palkibusFormat';
 import { buildBusRouteState, toPlainData } from './busNavigationState';
 
 const STOP_TONE = { pickup: 'is-green', drop: 'is-red', both: 'is-blue' };
@@ -90,7 +90,7 @@ const BusPreview = () => {
                 ) : (
                   <p className="zb-text text-base font-extrabold">New</p>
                 )}
-                <p className="zb-muted text-[10px] font-bold">{Number(bus.ratingCount || 0) > 0 ? `${bus.ratingCount} ratings` : 'on ZI Bus'}</p>
+                <p className="zb-muted text-[10px] font-bold">{Number(bus.ratingCount || 0) > 0 ? `${bus.ratingCount} ratings` : 'on PALKI Bus'}</p>
               </div>
             </div>
           </div>

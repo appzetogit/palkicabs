@@ -190,7 +190,7 @@ const BusPartnerOnboarding = () => {
           {backButton(() => navigate('/bus-login'))}
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Your details</h1>
           <p className="mt-2 text-base text-slate-500">
-            Registering <span className="font-semibold text-slate-900">+91 {phone}</span> for ZI Bus.
+            Registering <span className="font-semibold text-slate-900">+91 {phone}</span> for PALKI Bus.
           </p>
           <form onSubmit={saveDetails} className="mt-7 space-y-4">
             <Field label="Full name">
@@ -241,7 +241,7 @@ const BusPartnerOnboarding = () => {
         <>
           {backButton(() => setStep(0))}
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Your bus</h1>
-          <p className="mt-2 text-base text-slate-500">Join a bus already on ZI Bus, or add yours.</p>
+          <p className="mt-2 text-base text-slate-500">Join a bus already on PALKI Bus, or add yours.</p>
 
           <div className="mt-7 grid grid-cols-2 gap-3">
             <button

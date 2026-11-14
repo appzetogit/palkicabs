@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BusFront, ChevronRight, Loader2, Plus, UtensilsCrossed } from 'lucide-react';
 import userBusService from '../../services/busService';
-import { BusScreen, BusTopBar, EmptyState, Skeleton } from '../../components/bus/ZiBusUi';
-import { formatDay, formatRupees, routePrefixFor } from '../../components/bus/zibusFormat';
+import { BusScreen, BusTopBar, EmptyState, Skeleton } from '../../components/bus/PalkiBusUi';
+import { formatDay, formatRupees, routePrefixFor } from '../../components/bus/palkibusFormat';
 
 const PAGE_SIZE = 10;
 
@@ -106,7 +106,7 @@ const BusBookings = () => {
       <BusTopBar
         onBack={() => navigate(-1)}
         title="My trips"
-        subtitle="ZI Bus tickets"
+        subtitle="PALKI Bus tickets"
         right={(
           <button type="button" onClick={() => navigate(`${routePrefix}/bus`)} className="zb-icon-btn" aria-label="Book a bus">
             <Plus size={18} />

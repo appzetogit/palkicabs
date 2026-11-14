@@ -81,7 +81,7 @@ import { authenticateChannel } from '../services/busChannelService.js';
 
 export const busModuleRouter = Router();
 
-// Passenger (ZI Bus app)
+// Passenger (PALKI Bus app)
 const asUser = authenticate(['user']);
 busModuleRouter.get('/users/buses/:id/dhabas', asUser, asyncHandler(listTripDhabas));
 busModuleRouter.get('/users/bus-bookings/:id/ticket', asUser, asyncHandler(getMyBusTicket));
@@ -129,40 +129,40 @@ busModuleRouter.patch('/dhaba/orders/:id/status', asDhaba, asyncHandler(changeMy
 
 // Admin
 const asAdmin = authenticate(['admin']);
-busModuleRouter.get('/admin/zibus/dhabas', asAdmin, asyncHandler(adminListDhabas));
-busModuleRouter.post('/admin/zibus/dhabas', asAdmin, asyncHandler(adminCreateDhaba));
-busModuleRouter.patch('/admin/zibus/dhabas/:id', asAdmin, asyncHandler(adminUpdateDhaba));
-busModuleRouter.delete('/admin/zibus/dhabas/:id', asAdmin, asyncHandler(adminDeleteDhaba));
-busModuleRouter.get('/admin/zibus/dhaba-orders', asAdmin, asyncHandler(adminListDhabaOrders));
-busModuleRouter.get('/admin/zibus/dhabas/pending-count', asAdmin, asyncHandler(adminCountPendingDhabas));
-busModuleRouter.post('/admin/zibus/dhabas/:id/approve', asAdmin, asyncHandler(adminApproveDhaba));
-busModuleRouter.post('/admin/zibus/dhabas/:id/reject', asAdmin, asyncHandler(adminRejectDhaba));
-busModuleRouter.get('/admin/zibus/food-categories', asAdmin, asyncHandler(adminListFoodCategories));
-busModuleRouter.post('/admin/zibus/food-categories', asAdmin, asyncHandler(adminCreateFoodCategory));
-busModuleRouter.post('/admin/zibus/food-categories/reorder', asAdmin, asyncHandler(adminReorderFoodCategories));
-busModuleRouter.patch('/admin/zibus/food-categories/:id', asAdmin, asyncHandler(adminUpdateFoodCategory));
-busModuleRouter.delete('/admin/zibus/food-categories/:id', asAdmin, asyncHandler(adminDeleteFoodCategory));
-busModuleRouter.get('/admin/zibus/dhabas/:id/menu', asAdmin, asyncHandler(adminListDhabaMenu));
-busModuleRouter.post('/admin/zibus/dhabas/:id/menu', asAdmin, asyncHandler(adminAddDhabaMenuItem));
-busModuleRouter.patch('/admin/zibus/dhabas/:id/menu/:itemId', asAdmin, asyncHandler(adminUpdateDhabaMenuItem));
-busModuleRouter.delete('/admin/zibus/dhabas/:id/menu/:itemId', asAdmin, asyncHandler(adminDeleteDhabaMenuItem));
-busModuleRouter.get('/admin/zibus/dhaba-payouts', asAdmin, asyncHandler(adminListDhabaPayouts));
-busModuleRouter.get('/admin/zibus/dhabas/:id/ledger', asAdmin, asyncHandler(adminGetDhabaLedger));
-busModuleRouter.post('/admin/zibus/dhabas/:id/payouts', asAdmin, asyncHandler(adminRecordDhabaPayout));
-busModuleRouter.delete('/admin/zibus/dhabas/:id/payouts/:payoutId', asAdmin, asyncHandler(adminDeleteDhabaPayout));
-busModuleRouter.get('/admin/zibus/channels', asAdmin, asyncHandler(adminListChannels));
-busModuleRouter.post('/admin/zibus/channels', asAdmin, asyncHandler(adminCreateChannel));
-busModuleRouter.patch('/admin/zibus/channels/:id', asAdmin, asyncHandler(adminUpdateChannel));
-busModuleRouter.post('/admin/zibus/channels/:id/rotate-key', asAdmin, asyncHandler(adminRotateChannelKey));
-busModuleRouter.get('/admin/zibus/channels/:id/events', asAdmin, asyncHandler(adminListChannelEvents));
-busModuleRouter.get('/admin/zibus/inventory', asAdmin, asyncHandler(adminTripInventory));
-busModuleRouter.get('/admin/zibus/connector-types', asAdmin, asyncHandler(adminListConnectorTypes));
-busModuleRouter.post('/admin/zibus/channels/:id/sync-now', asAdmin, asyncHandler(adminSyncChannelNow));
-busModuleRouter.get('/admin/zibus/operators', asAdmin, asyncHandler(adminListOperators));
-busModuleRouter.post('/admin/zibus/operators', asAdmin, asyncHandler(adminCreateOperator));
-busModuleRouter.patch('/admin/zibus/operators/:id', asAdmin, asyncHandler(adminUpdateOperator));
-busModuleRouter.get('/admin/zibus/operators/:id/report', asAdmin, asyncHandler(adminOperatorReport));
-busModuleRouter.get('/admin/zibus/owners', asAdmin, asyncHandler(adminListOwnersForOperators));
+busModuleRouter.get('/admin/palkibus/dhabas', asAdmin, asyncHandler(adminListDhabas));
+busModuleRouter.post('/admin/palkibus/dhabas', asAdmin, asyncHandler(adminCreateDhaba));
+busModuleRouter.patch('/admin/palkibus/dhabas/:id', asAdmin, asyncHandler(adminUpdateDhaba));
+busModuleRouter.delete('/admin/palkibus/dhabas/:id', asAdmin, asyncHandler(adminDeleteDhaba));
+busModuleRouter.get('/admin/palkibus/dhaba-orders', asAdmin, asyncHandler(adminListDhabaOrders));
+busModuleRouter.get('/admin/palkibus/dhabas/pending-count', asAdmin, asyncHandler(adminCountPendingDhabas));
+busModuleRouter.post('/admin/palkibus/dhabas/:id/approve', asAdmin, asyncHandler(adminApproveDhaba));
+busModuleRouter.post('/admin/palkibus/dhabas/:id/reject', asAdmin, asyncHandler(adminRejectDhaba));
+busModuleRouter.get('/admin/palkibus/food-categories', asAdmin, asyncHandler(adminListFoodCategories));
+busModuleRouter.post('/admin/palkibus/food-categories', asAdmin, asyncHandler(adminCreateFoodCategory));
+busModuleRouter.post('/admin/palkibus/food-categories/reorder', asAdmin, asyncHandler(adminReorderFoodCategories));
+busModuleRouter.patch('/admin/palkibus/food-categories/:id', asAdmin, asyncHandler(adminUpdateFoodCategory));
+busModuleRouter.delete('/admin/palkibus/food-categories/:id', asAdmin, asyncHandler(adminDeleteFoodCategory));
+busModuleRouter.get('/admin/palkibus/dhabas/:id/menu', asAdmin, asyncHandler(adminListDhabaMenu));
+busModuleRouter.post('/admin/palkibus/dhabas/:id/menu', asAdmin, asyncHandler(adminAddDhabaMenuItem));
+busModuleRouter.patch('/admin/palkibus/dhabas/:id/menu/:itemId', asAdmin, asyncHandler(adminUpdateDhabaMenuItem));
+busModuleRouter.delete('/admin/palkibus/dhabas/:id/menu/:itemId', asAdmin, asyncHandler(adminDeleteDhabaMenuItem));
+busModuleRouter.get('/admin/palkibus/dhaba-payouts', asAdmin, asyncHandler(adminListDhabaPayouts));
+busModuleRouter.get('/admin/palkibus/dhabas/:id/ledger', asAdmin, asyncHandler(adminGetDhabaLedger));
+busModuleRouter.post('/admin/palkibus/dhabas/:id/payouts', asAdmin, asyncHandler(adminRecordDhabaPayout));
+busModuleRouter.delete('/admin/palkibus/dhabas/:id/payouts/:payoutId', asAdmin, asyncHandler(adminDeleteDhabaPayout));
+busModuleRouter.get('/admin/palkibus/channels', asAdmin, asyncHandler(adminListChannels));
+busModuleRouter.post('/admin/palkibus/channels', asAdmin, asyncHandler(adminCreateChannel));
+busModuleRouter.patch('/admin/palkibus/channels/:id', asAdmin, asyncHandler(adminUpdateChannel));
+busModuleRouter.post('/admin/palkibus/channels/:id/rotate-key', asAdmin, asyncHandler(adminRotateChannelKey));
+busModuleRouter.get('/admin/palkibus/channels/:id/events', asAdmin, asyncHandler(adminListChannelEvents));
+busModuleRouter.get('/admin/palkibus/inventory', asAdmin, asyncHandler(adminTripInventory));
+busModuleRouter.get('/admin/palkibus/connector-types', asAdmin, asyncHandler(adminListConnectorTypes));
+busModuleRouter.post('/admin/palkibus/channels/:id/sync-now', asAdmin, asyncHandler(adminSyncChannelNow));
+busModuleRouter.get('/admin/palkibus/operators', asAdmin, asyncHandler(adminListOperators));
+busModuleRouter.post('/admin/palkibus/operators', asAdmin, asyncHandler(adminCreateOperator));
+busModuleRouter.patch('/admin/palkibus/operators/:id', asAdmin, asyncHandler(adminUpdateOperator));
+busModuleRouter.get('/admin/palkibus/operators/:id/report', asAdmin, asyncHandler(adminOperatorReport));
+busModuleRouter.get('/admin/palkibus/owners', asAdmin, asyncHandler(adminListOwnersForOperators));
 
 // Channel API for connected booking platforms / operator systems
 const channelApi = Router();
