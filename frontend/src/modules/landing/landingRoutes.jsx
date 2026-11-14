@@ -9,7 +9,7 @@ import Partner from './pages/Partner';
 import Driver from './pages/Driver';
 import Advertise from './pages/Advertise';
 import ContactUs from './pages/ContactUs';
-import PalkiBus from './pages/PalkiBus';
+// import PalkiBus from './pages/PalkiBus';
 
 /**
  * The landing pages take `openBookingModal` / `setActiveTab` as props, from when
@@ -27,7 +27,7 @@ const PAGES = {
   home: withShellContext(PalkiHome),
   about: withShellContext(AboutUs),
   services: withShellContext(Services),
-  bus: withShellContext(PalkiBus),
+  // bus: withShellContext(PalkiBus),
   corporate: withShellContext(Corporate),
   partner: withShellContext(Partner),
   driver: withShellContext(Driver),

@@ -23,10 +23,10 @@ const Services = ({ openBookingModal }) => {
   // feature bullets) for whichever ones have been written up, matched on name.
   // A module with no CMS entry still renders, using its own icon and blurb.
   const normalise = (value) =>
-    String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^zi/, '');
+    String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^palki/, '');
 
   const cmsItems = servicesPage.items || [];
-  // Prefix matching, not equality: the module is "Zi City Ride" while the
+  // Prefix matching, not equality: the module is "PALKI City Ride" while the
   // write-up is titled "City Ride (Local Cabs)", and neither name is going to be
   // edited to suit the other.
   const findCmsMatch = (title) => {
@@ -54,6 +54,8 @@ const Services = ({ openBookingModal }) => {
         };
       })
     : cmsItems.map((item) => ({ ...item, icon: LANDING_ICONS[item.icon] || Car }));
+  // PALKI Bus is not offered on the website for now.
+  const visibleServices = allServices.filter((s) => s.id !== 'bus' && !/\bbus\b/i.test(s.title || ''));
 
 
   return (
@@ -69,7 +71,7 @@ const Services = ({ openBookingModal }) => {
       <section className="section-padding">
         <div className="container">
           <div className="services-list-grid" data-reveal-stagger>
-            {allServices.map((s) => {
+            {visibleServices.map((s) => {
               const IconComp = s.icon;
               return (
                 <div key={s.id} className="service-detail-card">

@@ -72,7 +72,7 @@ export const defaultLandingContent = {
   hero: {
     titleLine1: 'Your city.',
     titleLine2: 'Your ride. PALKI.',
-    subtitle: 'Bikes, autos, cabs, parcels and intercity buses — booked in seconds, tracked live, with upfront fares and verified drivers.',
+    subtitle: 'Bikes, autos, cabs and parcels — booked in seconds, tracked live, with upfront fares and verified drivers.',
     primaryCta: 'Book a Ride',
     secondaryCta: 'Download App',
     badges: [
@@ -85,7 +85,7 @@ export const defaultLandingContent = {
 
   footer: {
     description:
-      'PALKI is your taxi app for safe, upfront-priced rides with verified drivers — city rides, outstation trips, parcels and intercity buses.',
+      'PALKI is your taxi app for safe, upfront-priced rides with verified drivers — city rides, outstation trips and parcels.',
     servicesHeading: 'Cab Services',
     cabServices: [
       { label: 'City Ride (Local Cabs)' },
@@ -105,7 +105,7 @@ export const defaultLandingContent = {
   seo: {
     title: 'PALKI - Your Taxi App',
     description:
-      'PALKI - book bikes, autos, cabs, parcels and intercity buses with upfront fares, live tracking and verified drivers.',
+      'PALKI - book bikes, autos, cabs and parcels with upfront fares, live tracking and verified drivers.',
   },
 
   about: {
@@ -159,10 +159,6 @@ export const defaultLandingContent = {
       { id: 'outstation', title: 'Outstation Travel', tag: 'One-Way & Round Trips', icon: 'Compass', image: '/service-photos/outstation.jpg',
         description: 'Comfortable long-distance travel between cities. Pay only for one-way drop or book a round trip for weekend getaways.',
         features: ['Experienced highway drivers', 'No hidden driver allowance fees', 'Night charge free', 'All India Tourist Permit'] },
-      { id: 'bus', title: 'PALKI Bus', tag: 'Intercity Bus Travel', icon: 'Bus',
-        image: '/service-photos/palki-bus.jpg',
-        description: 'Comfortable intercity bus travel. Pick your seat on a live seat map, pre-order highway dhaba meals and track your bus live.',
-        features: ['Choose your seat on a live seat map', 'Pre-order highway dhaba meals', 'Live bus tracking', 'Instant e-ticket with PNR'] },
       { id: 'sedan', title: 'Premium Sedan', tag: 'Comfort & Style', icon: 'Car', image: '/service-photos/city-ride.jpg',
         description: 'Elegant Dzire, Etios, and Honda Amaze sedans featuring spacious legroom and premium upholstery.',
         features: ['4 Passenger seating', '2 Large Suitcase capacity', 'Water bottles & chargers', 'Smooth quiet ride'] },

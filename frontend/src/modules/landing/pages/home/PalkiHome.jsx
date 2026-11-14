@@ -19,23 +19,20 @@ export default function PalkiHome({ openBookingModal, setActiveTab }) {
   const { vehicles, source } = useVehicleTypes([]);
 
   const book = (vehicle) => openBookingModal?.(vehicle || null);
-  const goBus = () => setActiveTab?.('bus');
 
   return (
     <div className="ph-root">
       <Hero
         hero={hero}
         onBook={() => book()}
-        onBusSearch={(state) => navigate('/bus/list', { state })}
       />
-      <RideTypes vehicles={vehicles} source={source} onBook={book} onBus={goBus} />
+      <RideTypes vehicles={vehicles} source={source} onBook={book} />
       <RoadDivider />
       <HowItWorks />
       <WhyPalki valueProps={valueProps} />
       <Services
         items={servicesPage?.items}
         onBook={book}
-        onBus={goBus}
         onAll={() => setActiveTab?.('services')}
       />
       <TrafficBand />

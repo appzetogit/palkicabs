@@ -7,7 +7,7 @@ import {
   useTransform,
 } from 'framer-motion';
 import {
-  ArrowRight, BadgeIndianRupee, Bus, CalendarDays, Car, ChevronDown, Clock, MapPin, Navigation,
+  ArrowRight, BadgeIndianRupee, ChevronDown, Clock, MapPin, Navigation,
   Smartphone, Star, Users,
 } from 'lucide-react';
 import PalkiCar from './PalkiCar';
@@ -56,19 +56,10 @@ export function RoadDivider({ flip = false }) {
 
 /* ── hero ───────────────────────────────────────────────────────────────── */
 
-const todayKey = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-};
-
-export function Hero({ hero, onBook, onBusSearch }) {
+export function Hero({ hero, onBook }) {
   const still = useReducedMotion();
-  const [mode, setMode] = useState('ride');
   const [pickup, setPickup] = useState('');
   const [drop, setDrop] = useState('');
-  const [busFrom, setBusFrom] = useState('');
-  const [busTo, setBusTo] = useState('');
-  const [busDate, setBusDate] = useState(todayKey);
 
   const rise = (delay) => ({
     initial: still ? false : { opacity: 0, y: 28 },
@@ -79,12 +70,6 @@ export function Hero({ hero, onBook, onBusSearch }) {
   const submitRide = (e) => {
     e.preventDefault();
     onBook();
-  };
-
-  const submitBus = (e) => {
-    e.preventDefault();
-    if (!busFrom.trim() || !busTo.trim()) return;
-    onBusSearch({ fromCity: busFrom.trim(), toCity: busTo.trim(), date: busDate || todayKey() });
   };
 
   const badges = (hero?.badges || []).slice(0, 4);
@@ -113,68 +98,22 @@ export function Hero({ hero, onBook, onBusSearch }) {
           </motion.p>
 
           <motion.div className="ph-book" {...rise(0.32)}>
-            <div className="ph-book-tabs" role="tablist" aria-label="What would you like to book?">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={mode === 'ride'}
-                className={mode === 'ride' ? 'is-on' : ''}
-                onClick={() => setMode('ride')}
-              >
-                <Car size={16} /> Ride
+            <form className="ph-book-form" onSubmit={submitRide}>
+              <label className="ph-field">
+                <span className="ph-field-dot" aria-hidden="true" />
+                <span className="ph-sr">Pickup location</span>
+                <input value={pickup} onChange={(e) => setPickup(e.target.value)} placeholder="Pickup location" />
+              </label>
+              <span className="ph-field-line" aria-hidden="true" />
+              <label className="ph-field">
+                <MapPin size={16} className="ph-field-pin" aria-hidden="true" />
+                <span className="ph-sr">Drop location</span>
+                <input value={drop} onChange={(e) => setDrop(e.target.value)} placeholder="Where to?" />
+              </label>
+              <button type="submit" className="ph-btn ph-btn-primary ph-book-go">
+                {hero?.primaryCta || 'Book a Ride'} <ArrowRight size={18} />
               </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={mode === 'bus'}
-                className={mode === 'bus' ? 'is-on' : ''}
-                onClick={() => setMode('bus')}
-              >
-                <Bus size={16} /> Bus
-              </button>
-              <span className={`ph-book-tab-ink ${mode === 'bus' ? 'is-right' : ''}`} aria-hidden="true" />
-            </div>
-
-            {mode === 'ride' ? (
-              <form className="ph-book-form" onSubmit={submitRide}>
-                <label className="ph-field">
-                  <span className="ph-field-dot" aria-hidden="true" />
-                  <span className="ph-sr">Pickup location</span>
-                  <input value={pickup} onChange={(e) => setPickup(e.target.value)} placeholder="Pickup location" />
-                </label>
-                <span className="ph-field-line" aria-hidden="true" />
-                <label className="ph-field">
-                  <MapPin size={16} className="ph-field-pin" aria-hidden="true" />
-                  <span className="ph-sr">Drop location</span>
-                  <input value={drop} onChange={(e) => setDrop(e.target.value)} placeholder="Where to?" />
-                </label>
-                <button type="submit" className="ph-btn ph-btn-primary ph-book-go">
-                  {hero?.primaryCta || 'Book a Ride'} <ArrowRight size={18} />
-                </button>
-              </form>
-            ) : (
-              <form className="ph-book-form" onSubmit={submitBus}>
-                <label className="ph-field">
-                  <span className="ph-field-dot" aria-hidden="true" />
-                  <span className="ph-sr">From city</span>
-                  <input value={busFrom} onChange={(e) => setBusFrom(e.target.value)} placeholder="From city" required />
-                </label>
-                <span className="ph-field-line" aria-hidden="true" />
-                <label className="ph-field">
-                  <MapPin size={16} className="ph-field-pin" aria-hidden="true" />
-                  <span className="ph-sr">To city</span>
-                  <input value={busTo} onChange={(e) => setBusTo(e.target.value)} placeholder="To city" required />
-                </label>
-                <label className="ph-field ph-field-date">
-                  <CalendarDays size={16} aria-hidden="true" />
-                  <span className="ph-sr">Travel date</span>
-                  <input type="date" value={busDate} min={todayKey()} onChange={(e) => setBusDate(e.target.value)} />
-                </label>
-                <button type="submit" className="ph-btn ph-btn-primary ph-book-go">
-                  Search buses <ArrowRight size={18} />
-                </button>
-              </form>
-            )}
+            </form>
           </motion.div>
 
           {badges.length > 0 && (
@@ -208,20 +147,18 @@ const RIDES = [
   { name: 'Sedan', variant: 'sedan', desc: 'Extra legroom and boot space', meta: '4 seats' },
   { name: 'SUV', variant: 'suv', desc: 'Room for family and luggage', meta: '6–7 seats' },
   { name: 'Parcel', variant: 'bike', cargo: true, desc: 'Send packages across the city', meta: 'Doorstep pickup' },
-  { name: 'PALKI Bus', variant: 'bus', desc: 'Pick your seat for intercity trips', meta: 'Live seat map', bus: true },
 ];
 
-export function RideTypes({ vehicles, source, onBook, onBus }) {
+export function RideTypes({ vehicles, source, onBook }) {
   // Real catalog when the admin has set one up; otherwise PALKI's standard line-up.
   const list =
     source === 'api' && vehicles.length
-      ? vehicles.map((v) => ({
+      ? vehicles.filter((v) => variantFor(`${v.name} ${v.type}`) !== 'bus').map((v) => ({
           name: v.name,
           variant: variantFor(`${v.name} ${v.type}`),
           cargo: /parcel|deliver/i.test(v.name),
           desc: v.type || 'Book in seconds, track live',
           meta: [v.seats, v.price && `${v.price}${v.unit}`].filter(Boolean).join(' · '),
-          bus: variantFor(v.name) === 'bus',
         }))
       : RIDES;
 
@@ -231,15 +168,15 @@ export function RideTypes({ vehicles, source, onBook, onBus }) {
         <SectionHead
           eyebrow="Ride your way"
           title="One app. Every kind of ride."
-          sub="From a quick bike hop to a family SUV or an overnight bus — pick what fits the trip."
+          sub="From a quick bike hop to a roomy SUV — pick what fits the trip."
         />
         <div className="ph-ride-grid">
           {list.map((r, i) => (
             <Reveal key={`${r.name}-${i}`} delay={Math.min(i, 6) * 0.06}>
               <button
                 type="button"
-                className={`ph-ride ${r.variant === 'bus' ? 'is-wide' : ''}`}
-                onClick={() => (r.bus ? onBus() : onBook(r.name))}
+                className="ph-ride"
+                onClick={() => onBook(r.name)}
               >
                 <span className="ph-ride-stage" aria-hidden="true">
                   <span className="ph-ride-road" />
@@ -368,8 +305,10 @@ export function WhyPalki({ valueProps }) {
 
 /* ── services ───────────────────────────────────────────────────────────── */
 
-export function Services({ items, onBook, onBus, onAll }) {
-  const list = (items || []).filter((s) => s.image).slice(0, 6);
+export function Services({ items, onBook, onAll }) {
+  const list = (items || [])
+    .filter((s) => s.image && s.id !== 'bus' && !/\bbus\b/i.test(s.title || ''))
+    .slice(0, 6);
   if (!list.length) return null;
   return (
     <section className="ph-section ph-services">
@@ -378,7 +317,7 @@ export function Services({ items, onBook, onBus, onAll }) {
           <SectionHead
             eyebrow="Services"
             title="Wherever the day takes you."
-            sub="City commutes, airport runs, weekend getaways, parcels and intercity buses."
+            sub="City commutes, airport runs, weekend getaways and parcels."
           />
           <Reveal>
             <button type="button" className="ph-btn ph-btn-ghost" onClick={onAll}>
@@ -393,7 +332,7 @@ export function Services({ items, onBook, onBus, onAll }) {
               <button
                 type="button"
                 className="ph-service"
-                onClick={() => (s.id === 'bus' ? onBus() : onBook(s.title))}
+                onClick={() => onBook(s.title)}
               >
                 <span className="ph-service-img">
                   <img src={s.image} alt="" loading="lazy" />
@@ -419,7 +358,7 @@ export function TrafficBand() {
   const still = useReducedMotion();
   const lanes = [
     ['sedan', 'auto', 'suv', 'bike', 'hatch'],
-    ['bus', 'hatch', 'bike', 'sedan'],
+    ['suv', 'hatch', 'bike', 'sedan'],
   ];
   return (
     <div className={`ph-traffic ${still ? 'is-still' : ''}`} aria-hidden="true">
@@ -480,7 +419,7 @@ export function DriveBand({ onDriver, onPartner }) {
           {[
             { icon: Clock, title: 'Flexible hours', desc: 'Go online when it suits you, go offline when it does not.' },
             { icon: BadgeIndianRupee, title: 'Clear earnings', desc: 'Every fare, payout and wallet entry visible in the driver app.' },
-            { icon: Users, title: 'Bus operators too', desc: 'List your buses on PALKI Bus and sell seats online.' },
+            { icon: Users, title: 'Fleet owners welcome', desc: 'Attach your cabs and track every driver and payout in one place.' },
           ].map((p, i) => (
             <Reveal key={p.title} delay={0.1 + i * 0.08} className="ph-drive-perk">
               <span className="ph-why-icon"><p.icon size={20} /></span>
