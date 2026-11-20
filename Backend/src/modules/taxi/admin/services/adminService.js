@@ -7373,7 +7373,15 @@ const listAdminRides = async ({
     if (variant === 'ongoing_rides' && !f.bookingStatus) f.bookingStatus = 'confirmed'; // only live/upcoming pool seats
     const from = parseDay(query.dateFrom); const to = parseDay(query.dateTo, true);
     if (from || to) f.createdAt = { ...(from ? { $gte: from } : {}), ...(to ? { $lte: to } : {}) };
-    if (String(query.payment || '').toLowerCase() === 'cash') f._id = null;
+    // Pool seats are prepaid cars with a named driver: filters that cannot match them hide them.
+    if (['cash', 'wallet'].includes(String(query.payment || '').toLowerCase())) f._id = null;
+    if (['bike', 'auto'].includes(String(query.vehicle || '').toLowerCase())) f._id = null;
+    if (String(query.driver || '').toLowerCase() === 'unassigned') f._id = null;
+    if (mongoose.isValidObjectId(query.city) && service !== 'pooling') {
+      const place = await ServiceLocation.findById(query.city).select('name').lean();
+      const routeIds = await PoolingRoute.find(place?.name === 'Indore' ? { originLabel: 'Indore' } : { originLabel: { $ne: 'Indore' } }).select('_id').lean();
+      f.route = { $in: routeIds.map((r) => r._id) };
+    }
     if (search) {
       const rx = new RegExp(escapeRegex(search), 'i');
       const users = await User.find({ $or: [{ name: rx }, { phone: rx }] }).select('_id').limit(100).lean();
