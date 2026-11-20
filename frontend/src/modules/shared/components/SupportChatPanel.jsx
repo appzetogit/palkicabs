@@ -643,7 +643,7 @@ const SupportChatPanel = ({
           </div>
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Support Chat</p>
-            <h2 className="text-[20px] font-semibold text-slate-900">{title}</h2>
+            <p className="text-[20px] font-semibold text-slate-900">{title}</p>
           </div>
         </div>
         <p className="mt-4 text-[13px] font-semibold leading-6 text-slate-500">
@@ -670,16 +670,16 @@ const SupportChatPanel = ({
           <div className="min-w-0">
             {isAdminPanel ? (
               <>
-                <h2 className="truncate text-[34px] font-bold tracking-tight text-slate-900" style={{ fontFamily: 'Times New Roman' }}>Chats</h2>
+                <p className="truncate text-[26px] font-bold tracking-tight text-slate-900">Chats</p>
                 <div className="flex flex-wrap items-center gap-2 mt-1">
-                  <span className="text-[16px] font-medium tracking-[1px] text-[#6B7280]">Admin Support Conversations</span>
+                  <span className="text-[13px] font-medium text-[#6B7280]">Rider &amp; driver support conversations</span>
                   <span className="w-1 h-1 rounded-full bg-slate-300" />
-                  <span className="text-[16px] font-medium tracking-[1px] text-[#6B7280]">Desk Terminal</span>
+                  <span className="text-[13px] font-medium text-[#6B7280]">Admin desk</span>
                 </div>
               </>
             ) : (
               <>
-                <h2 className="truncate text-[18px] font-black tracking-tight text-slate-900">{title}</h2>
+                <p className="truncate text-[18px] font-black tracking-tight text-slate-900">{title}</p>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Desk Terminal</span>
                   <span className="w-1 h-1 rounded-full bg-slate-300" />
@@ -707,7 +707,7 @@ const SupportChatPanel = ({
 
       <div className={`grid min-h-0 flex-1 ${isPlainSurface ? 'h-full' : 'min-h-[calc(100vh-220px)]'} ${isAdminPanel && showSidebar ? 'xl:grid-cols-[380px_1fr]' : 'grid-cols-1'}`}>
         {isAdminPanel && showSidebar && (
-          <aside className="flex min-h-0 flex-col border-r-[1.5px] border-slate-200/60 bg-[#F8FAFC]">
+          <div className="flex min-h-0 flex-col border-r-[1.5px] border-slate-200/60 bg-[#F8FAFC]">
             <div className="shrink-0 border-b border-slate-200/60 bg-white p-5">
               <div className={`flex items-center gap-3 border border-slate-200 bg-slate-50/50 px-4 transition-all focus-within:ring-4 ${
                 isAdminPanel 
@@ -757,9 +757,9 @@ const SupportChatPanel = ({
                     <div className="flex items-center justify-between gap-2">
                       <p className={`truncate tracking-tight ${
                         isAdminPanel 
-                          ? `text-[17px] font-bold ${selectedConversationKey === conversation.conversationKey ? 'text-white' : 'text-slate-900'}`
+                          ? `text-[15px] font-bold ${selectedConversationKey === conversation.conversationKey ? 'text-slate-900' : 'text-slate-900'}`
                           : `text-[13px] font-bold ${selectedConversationKey === conversation.conversationKey ? 'text-indigo-600' : 'text-slate-900'}`
-                      }`} style={isAdminPanel ? { fontFamily: 'Times New Roman' } : {}}>
+                      }`} >
                         {conversation.peer?.name || 'Support Contact'}
                       </p>
                       {conversation.unreadCount > 0 && (
@@ -774,21 +774,21 @@ const SupportChatPanel = ({
                       <div className="flex items-center gap-2">
                         <p className={`uppercase tracking-widest ${
                           isAdminPanel 
-                            ? `text-[14px] font-medium ${selectedConversationKey === conversation.conversationKey ? 'text-white/80' : 'text-slate-500'}`
+                            ? `text-[11px] font-semibold ${selectedConversationKey === conversation.conversationKey ? 'text-slate-600' : 'text-slate-500'}`
                             : `text-[10px] font-black ${selectedConversationKey === conversation.conversationKey ? 'text-indigo-600/60' : 'text-slate-400'}`
                         }`}>
-                          {conversation.peer?.role || 'user'}
+                          {conversation.peer?.role === 'driver' ? 'Driver' : conversation.peer?.role === 'owner' ? 'Owner' : 'Rider'}
                         </p>
                       </div>
                       <p className={`font-medium ${
                         isAdminPanel
-                          ? `text-[13px] ${selectedConversationKey === conversation.conversationKey ? 'text-white/60' : 'text-slate-400'}`
+                          ? `text-[13px] ${selectedConversationKey === conversation.conversationKey ? 'text-slate-500' : 'text-slate-400'}`
                           : `text-[10px] font-bold text-slate-400`
                       }`}>{formatTime(conversation.updatedAt).split(',')[1] || 'Today'}</p>
                     </div>
                     <p className={`truncate leading-relaxed ${
                       isAdminPanel 
-                        ? `text-[15px] mt-1 ${selectedConversationKey === conversation.conversationKey ? 'text-white/70' : 'text-slate-500'}`
+                        ? `text-[13px] mt-1 ${selectedConversationKey === conversation.conversationKey ? 'text-slate-600' : 'text-slate-500'}`
                         : `text-[12px] mt-1.5 font-medium ${selectedConversationKey === conversation.conversationKey ? 'text-slate-600' : 'text-slate-500'}`
                     }`}>
                       {conversation.latestMessage?.message || 'No messages yet'}
@@ -803,7 +803,7 @@ const SupportChatPanel = ({
                 </div>
               )}
             </div>
-          </aside>
+          </div>
         )}
 
         <main className="flex min-h-0 flex-col bg-[linear-gradient(180deg,#fbfcff_0%,#f6f8fc_100%)] relative">
@@ -812,7 +812,7 @@ const SupportChatPanel = ({
               <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center text-slate-300 mb-6">
                 <MessageCircle size={40} />
               </div>
-              <h2 className="text-[28px] font-bold text-slate-900 mb-2" style={{ fontFamily: 'Times New Roman' }}>Select a conversation</h2>
+              <p className="text-[22px] font-bold text-slate-900 mb-2">Select a conversation</p>
               <p className="text-slate-500 text-[15px]">Choose a conversation from the left to view messages.</p>
             </div>
           ) : (
@@ -825,18 +825,18 @@ const SupportChatPanel = ({
                   <div className="min-w-0 flex-1">
                     {isAdminPanel ? (
                       <>
-                        <h3 className="truncate text-[24px] font-bold tracking-tight text-slate-900" style={{ fontFamily: 'Times New Roman' }}>
+                        <p className="truncate text-[18px] font-bold tracking-tight text-slate-900">
                           {selectedConversation?.peer?.name || 'Support Team'}
-                        </h3>
+                        </p>
                         <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-600 mt-[-4px]">
                           {selectedConversation?.peer?.role === 'driver' ? 'Driver Support Thread' : 'User Support Thread'}
                         </p>
                       </>
                     ) : (
                       <>
-                        <h3 className="truncate text-[15px] font-semibold uppercase tracking-tight text-slate-900">
+                        <p className="truncate text-[15px] font-semibold uppercase tracking-tight text-slate-900">
                           {selectedConversation?.peer?.name || 'Support Team'}
-                        </h3>
+                        </p>
                         <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-600">
                           {session.role === 'driver' ? 'Driver Support Thread' : 'User Support Thread'}
                         </p>
