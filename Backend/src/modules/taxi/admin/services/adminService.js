@@ -6582,6 +6582,47 @@ const tripPaymentFields = (ride) => {
   };
 };
 
+const rideDetailFields = (ride) => {
+  const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+  const meters = ride.route?.distanceMeters ?? ride.estimatedDistanceMeters ?? null;
+  return {
+    serviceType: ride.serviceType || 'ride',
+    tripCategory: ride.trip_category?.category || '',
+    vehicleName: ride.vehicleTypeId?.name || '',
+    vehicleImage: ride.vehicleTypeId?.image || '',
+    distanceKm: meters === null ? null : Math.round((num(meters) / 1000) * 10) / 10,
+    durationMin: ride.route?.durationMinutes ?? ride.estimatedDurationMinutes ?? null,
+    fareBreakdown: {
+      totalFare: num(ride.fare),
+      baseFare: num(ride.baseFare),
+      waitingCharge: num(ride.waitingCharge),
+      waitingMinutes: num(ride.waitingMinutes),
+      tollCharges: num(ride.tollCharges?.total),
+      airportFee: num(ride.trip_category?.airport_fee),
+      surgeMultiplier: ride.surge?.multiplier || null,
+      platformFee: num(ride.pricingSnapshot?.rider_platform_fee),
+      promoCode: ride.promo?.code || '',
+      promoDiscount: num(ride.promo?.discount_amount),
+      commission: num(ride.commissionAmount),
+      driverEarnings: num(ride.driverEarnings),
+    },
+    timeline: {
+      requestedAt: ride.createdAt || null,
+      acceptedAt: ride.acceptedAt || null,
+      arrivedAt: ride.arrivedAt || null,
+      startedAt: ride.startedAt || null,
+      completedAt: ride.completedAt || null,
+      cancelledAt: ride.cancelledAt || null,
+    },
+    cancellation: ride.cancelledAt || ride.status === 'cancelled'
+      ? { by: ride.cancelledBy || '', reason: ride.cancelReason || '' }
+      : null,
+    feedback: ride.feedback?.rating
+      ? { rating: num(ride.feedback.rating), comment: ride.feedback.comment || '', tipAmount: num(ride.feedback.tipAmount) }
+      : null,
+  };
+};
+
 const toAdminRideRow = (ride) => {
   const requestCode = `REQ_${String(ride._id).slice(-12).toUpperCase()}`;
   const status = String(ride.status || '').toLowerCase();
@@ -6609,6 +6650,7 @@ const toAdminRideRow = (ride) => {
     rideStatus: ride.status,
     liveStatus: ride.liveStatus,
     ...tripPaymentFields(ride),
+    ...rideDetailFields(ride),
     fare: Number(ride.fare || 0),
     // Prefer the human address the customer actually gave. Falling straight to
     // coordinates showed "12.9716, 77.5946" for website bookings, which carry a
@@ -6668,6 +6710,7 @@ const toAdminDeliveryRow = (ride) => {
     rideStatus: ride.status,
     liveStatus: ride.liveStatus,
     ...tripPaymentFields(ride),
+    ...rideDetailFields(ride),
     fare: Number(ride.fare || 0),
     pickupLabel: ride.pickupAddress || formatRidePointLabel(ride.pickupLocation, 'Pickup'),
     dropLabel: ride.dropAddress || formatRidePointLabel(ride.dropLocation, 'Drop'),
@@ -6675,8 +6718,13 @@ const toAdminDeliveryRow = (ride) => {
     dropLocation: ride.dropLocation,
     parcel: {
       category: parcel.category || '',
+      weight: parcel.weight || '',
+      description: parcel.description || '',
+      instructions: parcel.instructions || '',
       senderName: parcel.senderName || '',
+      senderMobile: parcel.senderMobile || '',
       receiverName: parcel.receiverName || '',
+      receiverMobile: parcel.receiverMobile || '',
       // Sender's photos + the driver's pickup/delivery proof, so the admin can
       // see exactly what was sent and handed over. Read the delivery mirror
       // first, falling back to the ride's own parcel so photos show even before
@@ -7144,7 +7192,8 @@ const listAdminRides = async ({
         .skip((page - 1) * limit)
         .limit(limit)
         .populate('userId', 'name phone')
-        .populate('driverId', 'name phone vehicleType vehicleNumber');
+        .populate('driverId', 'name phone vehicleType vehicleNumber')
+        .populate('vehicleTypeId', 'name image');
 
       if (includeParcel) {
         rideQuery = rideQuery.populate('deliveryId');
@@ -7161,26 +7210,38 @@ const listAdminRides = async ({
 
 
 
+const getRideListStats = async (baseFilter = {}) => {
+  const base = { ...baseFilter, adminDeletedAt: null };
+  const count = (filter) => Ride.countDocuments({ ...base, ...filter });
+  const istDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+  const startOfToday = new Date(`${istDay}T00:00:00+05:30`);
+  const [total, completed, cancelled, active, today, revenue] = await Promise.all([
+    count({}),
+    count({ status: RIDE_STATUS.COMPLETED }),
+    count({ status: RIDE_STATUS.CANCELLED }),
+    count({ status: { $in: [RIDE_STATUS.SEARCHING, RIDE_STATUS.ACCEPTED, RIDE_STATUS.ONGOING] } }),
+    count({ createdAt: { $gte: startOfToday } }),
+    Ride.aggregate([{ $match: { ...base, status: RIDE_STATUS.COMPLETED } }, { $group: { _id: null, sum: { $sum: '$fare' } } }]),
+  ]);
+  return { total, completed, cancelled, active, today, revenue: Math.round(revenue[0]?.sum || 0) };
+};
+
 export const listOngoingRides = async (query = {}) => {
-  return listAdminRides({
-    query,
-    baseFilter: {
-      status: { $in: [RIDE_STATUS.SEARCHING, RIDE_STATUS.ACCEPTED, RIDE_STATUS.ONGOING] },
-    },
-    variant: 'ongoing_rides',
-    serializer: toAdminRideRow,
-  });
+  const baseFilter = { status: { $in: [RIDE_STATUS.SEARCHING, RIDE_STATUS.ACCEPTED, RIDE_STATUS.ONGOING] } };
+  const [list, stats] = await Promise.all([
+    listAdminRides({ query, baseFilter, variant: 'ongoing_rides', serializer: toAdminRideRow }),
+    getRideListStats(baseFilter),
+  ]);
+  return { ...list, stats };
 };
 
 export const listRideRequests = async (query = {}) => {
-  return listAdminRides({
-    query,
-    baseFilter: {
-      serviceType: { $nin: ['parcel', 'intercity'] },
-    },
-    variant: 'ride_requests',
-    serializer: toAdminRideRow,
-  });
+  const baseFilter = { serviceType: { $nin: ['parcel', 'intercity'] } };
+  const [list, stats] = await Promise.all([
+    listAdminRides({ query, baseFilter, variant: 'ride_requests', serializer: toAdminRideRow }),
+    getRideListStats(baseFilter),
+  ]);
+  return { ...list, stats };
 };
 
 export const listDeliveries = async (query = {}) => {

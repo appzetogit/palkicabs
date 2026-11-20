@@ -3,6 +3,7 @@ import { ChevronDown, Filter, LoaderCircle, MoreVertical, Search, CheckCircle, C
 import { adminService } from '../../services/adminService';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { BookingDetailsDrawer, CustomerCell, DriverCell, RouteCell, VehicleCell, FareCell, StatCards, money } from './bookingShared';
 
 const STATUS_STYLES = {
   COMPLETED: 'bg-green-100 text-green-700 border border-green-200',
@@ -734,8 +735,8 @@ const Deliveries = () => {
             <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead className="sticky top-0 z-10 bg-white">
                 <tr className="bg-gray-50/80 border-b border-gray-100">
-                  {['Request ID', 'Date', 'User Name', 'Driver Name', 'Transport Type', 'Trip Status', 'Payment Option', 'Actions'].map((heading, i) => (
-                    <th key={heading} className={`px-4 py-2.5 text-[11px] font-bold text-gray-600 tracking-wide ${i === 7 ? 'text-right pr-6' : ''}`}>
+                  {['Request ID', 'Date', 'Customer', 'Driver', 'Route', 'Vehicle', 'Fare', 'Status', 'Payment', 'Actions'].map((heading, i) => (
+                    <th key={heading} className={`px-4 py-2.5 text-[11px] font-bold text-gray-600 tracking-wide ${i === 9 ? 'text-right pr-6' : ''}`}>
                       {heading}
                     </th>
                   ))}
@@ -744,14 +745,14 @@ const Deliveries = () => {
               <tbody className="divide-y divide-gray-100 bg-white">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={8} className="py-24 text-center">
+                    <td colSpan={10} className="py-24 text-center">
                       <LoaderCircle className="animate-spin text-yellow-400 mx-auto" size={32} />
                       <p className="mt-3 text-xs font-bold text-gray-400 uppercase tracking-widest">Loading Deliveries...</p>
                     </td>
                   </tr>
                 ) : error ? (
                   <tr>
-                    <td colSpan={8} className="py-24 text-center">
+                    <td colSpan={10} className="py-24 text-center">
                       <div className="bg-red-50 text-red-500 p-4 rounded-lg inline-block border border-red-100">
                         <XCircle size={24} className="mx-auto mb-2" />
                         <p className="text-sm font-bold">{error}</p>
@@ -763,7 +764,7 @@ const Deliveries = () => {
                   </tr>
                 ) : rows.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-24 text-center">
+                    <td colSpan={10} className="py-24 text-center">
                       <div className="mx-auto flex flex-col items-center justify-center opacity-50">
                         <Truck size={48} className="text-gray-300 mb-3" />
                         <p className="text-sm font-bold text-gray-500">No delivery requests found</p>
@@ -776,9 +777,11 @@ const Deliveries = () => {
                     <tr key={row.id || row.requestId || Math.random()} className="hover:bg-yellow-50/30 transition-colors group cursor-pointer" onClick={() => setSelectedDelivery(row)}>
                       <td className="px-4 py-2 text-[13px] font-bold text-gray-900 font-mono">{row.requestId || '-'}</td>
                       <td className="px-4 py-2 text-[12px] font-medium text-gray-600">{formatDate(row.date)}</td>
-                      <td className="px-4 py-2 text-[13px] font-bold text-gray-800">{row.userName || '-'}</td>
-                      <td className="px-4 py-2 text-[13px] font-medium text-gray-700">{row.driverName || '--'}</td>
-                      <td className="px-4 py-2 text-[13px] font-bold text-gray-700 capitalize">{String(row.transportType || '').toLowerCase()}</td>
+                      <td className="px-4 py-2"><CustomerCell row={row} /></td>
+                      <td className="px-4 py-2"><DriverCell row={row} /></td>
+                      <td className="px-4 py-2"><RouteCell row={row} /></td>
+                      <td className="px-4 py-2"><VehicleCell row={row} /></td>
+                      <td className="px-4 py-2"><FareCell row={row} /></td>
                       <td className="px-4 py-2">
                         <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded capitalize tracking-wide ${STATUS_STYLES[row.tripStatus] || 'bg-gray-100 text-gray-600 border border-gray-200'}`}>
                           {row.tripStatus ? String(row.tripStatus).replace('_', ' ').toLowerCase() : 'Unknown'}
@@ -837,10 +840,7 @@ const Deliveries = () => {
         </div>
       </div>
 
-      <DeliveryDetailsDrawer
-        delivery={selectedDelivery}
-        onClose={() => setSelectedDelivery(null)}
-      />
+      <BookingDetailsDrawer booking={selectedDelivery} onClose={() => setSelectedDelivery(null)} />
       <ProofPhotosDrawer delivery={proofDelivery} onClose={() => setProofDelivery(null)} />
       <PaymentDetailsModal delivery={paymentDelivery} onClose={() => setPaymentDelivery(null)} />
     </div>

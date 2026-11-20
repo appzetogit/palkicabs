@@ -3,6 +3,7 @@ import { Filter, MoreVertical, Search, Loader2, ChevronRight, CheckCircle, MapPi
 import { adminService } from '../../services/adminService';
 import toast from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
+import { BookingDetailsDrawer, CustomerCell, DriverCell, RouteCell, VehicleCell, FareCell, StatCards, money } from './bookingShared';
 
 const STATUS_STYLES = {
   ACCEPTED: 'bg-green-100 text-green-700 border border-green-200',
@@ -192,6 +193,8 @@ const Ongoing = () => {
   const [search, setSearch] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [rows, setRows] = useState([]);
+  const [stats, setStats] = useState(null);
+  const firstLoad = useRef(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -224,7 +227,7 @@ const Ongoing = () => {
 
   const loadRows = React.useCallback(async () => {
     let active = true;
-    setLoading(true);
+    if (firstLoad.current) setLoading(true);
     setError('');
     try {
       const response = await adminService.getOngoingRides({
@@ -236,16 +239,37 @@ const Ongoing = () => {
       const data = response?.data?.data || response?.data || response;
       if (!active) return;
       setRows(data?.results || []);
+      if (data?.stats) setStats(data.stats);
     } catch (err) {
       if (active) {
         setError(err?.message || 'Failed to load ongoing rides');
         setRows([]);
       }
     } finally {
-      if (active) setLoading(false);
+      if (active) { setLoading(false); firstLoad.current = false; }
     }
     return () => { active = false; };
   }, [activeTab, limit, search, activeFilters]);
+
+  // Live view: refresh quietly every 15s.
+  useEffect(() => {
+    const id = window.setInterval(() => { loadRows(); }, 15000);
+    return () => window.clearInterval(id);
+  }, [loadRows]);
+
+  const visibleRows = React.useMemo(() => rows.filter((row) => {
+    const f = activeFilters;
+    if (f.status && String(row.tripStatus || '').toLowerCase() !== f.status.toLowerCase()) return false;
+    if (f.transportType && String(row.transportType || '').toLowerCase() !== f.transportType.toLowerCase()) return false;
+    if (f.paymentType && String(row.paymentOption || '').toLowerCase() !== f.paymentType.toLowerCase()) return false;
+    const noDriver = !row.driver;
+    if (f.driverAssigned === 'assigned' && noDriver) return false;
+    if (f.driverAssigned === 'unassigned' && !noDriver) return false;
+    const when = new Date(row.date);
+    if (f.dateFrom && when < new Date(f.dateFrom)) return false;
+    if (f.dateTo) { const to = new Date(f.dateTo); to.setHours(23, 59, 59, 999); if (when > to) return false; }
+    return true;
+  }), [rows, activeFilters]);
 
   useEffect(() => {
     const cleanup = loadRows();
@@ -294,6 +318,17 @@ const Ongoing = () => {
             <span className="text-gray-600">Ongoing Requests</span>
           </div>
         </div>
+
+        {stats ? (
+          <StatCards items={[
+            { label: 'Active now', value: stats.active, tone: 'text-blue-600' },
+            { label: 'Today', value: stats.today },
+            { label: 'Total bookings', value: stats.total },
+            { label: 'Completed', value: stats.completed, tone: 'text-green-600' },
+            { label: 'Cancelled', value: stats.cancelled, tone: 'text-red-600' },
+            { label: 'Completed revenue', value: money(stats.revenue) },
+          ]} />
+        ) : null}
 
         {/* Main Content Box */}
         <div className="rounded-xl border border-gray-200 bg-white shadow-sm flex flex-col relative">
@@ -439,8 +474,8 @@ const Ongoing = () => {
             <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead className="sticky top-0 z-10 bg-white">
                 <tr className="bg-gray-50/80 border-b border-gray-100">
-                  {['Request ID', 'Date', 'User Name', 'Driver Name', 'Transport Type', 'Trip Status', 'Payment Option', 'Action'].map((heading, i) => (
-                    <th key={heading} className={`px-4 py-2.5 text-[11px] font-bold text-gray-600 tracking-wide ${i === 7 ? 'text-right pr-6' : ''}`}>
+                  {['Request ID', 'Date', 'Customer', 'Driver', 'Route', 'Vehicle', 'Fare', 'Status', 'Payment', 'Action'].map((heading, i) => (
+                    <th key={heading} className={`px-4 py-2.5 text-[11px] font-bold text-gray-600 tracking-wide ${i === 9 ? 'text-right pr-6' : ''}`}>
                       {heading}
                     </th>
                   ))}
@@ -449,14 +484,14 @@ const Ongoing = () => {
               <tbody className="divide-y divide-gray-100 bg-white">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="py-24 text-center">
+                    <td colSpan={10} className="py-24 text-center">
                       <Loader2 className="animate-spin text-yellow-400 mx-auto" size={32} />
                       <p className="mt-3 text-xs font-bold text-gray-400 uppercase tracking-widest">Loading Requests...</p>
                     </td>
                   </tr>
                 ) : error ? (
                   <tr>
-                    <td colSpan={8} className="py-24 text-center">
+                    <td colSpan={10} className="py-24 text-center">
                       <div className="bg-red-50 text-red-500 p-4 rounded-lg inline-block border border-red-100">
                         <XCircle size={24} className="mx-auto mb-2" />
                         <p className="text-sm font-bold">{error}</p>
@@ -466,9 +501,9 @@ const Ongoing = () => {
                       </div>
                     </td>
                   </tr>
-                ) : rows.length === 0 ? (
+                ) : visibleRows.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-24 text-center">
+                    <td colSpan={10} className="py-24 text-center">
                       <div className="mx-auto flex flex-col items-center justify-center opacity-50">
                         <Truck size={48} className="text-gray-300 mb-3" />
                         <p className="text-sm font-bold text-gray-500">No Ongoing Requests Found</p>
@@ -477,13 +512,15 @@ const Ongoing = () => {
                     </td>
                   </tr>
                 ) : (
-                  rows.map((row) => (
+                  visibleRows.map((row) => (
                     <tr key={row.id || row.requestId || Math.random()} className="hover:bg-yellow-50/30 transition-colors group cursor-pointer" onClick={() => setSelectedRequest(row)}>
                       <td className="px-4 py-2 text-[13px] font-bold text-gray-900 font-mono">{row.requestId || '-'}</td>
                       <td className="px-4 py-2 text-[12px] font-medium text-gray-600">{formatDate(row.date)}</td>
-                      <td className="px-4 py-2 text-[13px] font-bold text-gray-800">{row.userName || '-'}</td>
-                      <td className="px-4 py-2 text-[13px] font-medium text-gray-700">{row.driverName || '--'}</td>
-                      <td className="px-4 py-2 text-[13px] font-bold text-gray-700 capitalize">{String(row.transportType || '').toLowerCase()}</td>
+                      <td className="px-4 py-2"><CustomerCell row={row} /></td>
+                      <td className="px-4 py-2"><DriverCell row={row} /></td>
+                      <td className="px-4 py-2"><RouteCell row={row} /></td>
+                      <td className="px-4 py-2"><VehicleCell row={row} /></td>
+                      <td className="px-4 py-2"><FareCell row={row} /></td>
                       <td className="px-4 py-2">
                         <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded capitalize tracking-wide ${STATUS_STYLES[row.tripStatus] || 'bg-gray-100 text-gray-600 border border-gray-200'}`}>
                           {row.tripStatus ? String(row.tripStatus).replace('_', ' ').toLowerCase() : 'Unknown'}
@@ -510,10 +547,7 @@ const Ongoing = () => {
         </div>
       </div>
 
-      <RequestDetailsModal 
-        request={selectedRequest} 
-        onClose={() => setSelectedRequest(null)} 
-      />
+      <BookingDetailsDrawer booking={selectedRequest} onClose={() => setSelectedRequest(null)} />
     </div>
   );
 };

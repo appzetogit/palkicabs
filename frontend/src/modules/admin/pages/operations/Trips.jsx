@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { adminService } from '../../services/adminService';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { BookingDetailsDrawer, CustomerCell, DriverCell, RouteCell, VehicleCell, FareCell, StatCards, money } from './bookingShared';
 
 const STATUS_STYLES = {
   CANCELLED: 'bg-red-100 text-red-700',
@@ -41,6 +42,7 @@ const normalizeTab = (tab) => {
 };
 
 const normalizeRow = (row = {}) => ({
+  ...row,
   id: String(row._id || row.id || row.requestId || Math.random()),
   requestId: row.requestId || row.request_id || row.ride_request_id || '--',
   date: row.date || row.createdAt || row.created_at || row.trip_date || row.updatedAt,
@@ -258,6 +260,7 @@ const Trips = () => {
     last_page: 1,
     total: 0,
   });
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState('');
@@ -309,6 +312,7 @@ const Trips = () => {
         total: results.length,
       };
       setRows(results.map(normalizeRow));
+      if (payload?.stats) setStats(payload.stats);
       setPagination({
         current_page: Number(paginator.current_page || page || 1),
         last_page: Math.max(1, Number(paginator.last_page || 1)),
@@ -420,10 +424,20 @@ const Trips = () => {
           <div className="hidden md:flex items-center gap-2 text-xs font-medium text-gray-400">
             <span>Operations</span>
             <ChevronRight size={14} className="text-gray-300" />
-            <ChevronRight size={12} className="text-gray-300" />
             <span className="text-gray-600">Trip Requests</span>
           </div>
         </div>
+
+        {stats ? (
+          <StatCards items={[
+            { label: 'Total bookings', value: stats.total },
+            { label: 'Completed', value: stats.completed, tone: 'text-green-600' },
+            { label: 'Cancelled', value: stats.cancelled, tone: 'text-red-600' },
+            { label: 'Active now', value: stats.active, tone: 'text-blue-600' },
+            { label: 'Today', value: stats.today },
+            { label: 'Completed revenue', value: money(stats.revenue) },
+          ]} />
+        ) : null}
 
         {/* Main Content Box */}
         <div className="rounded-xl border border-gray-200 bg-white shadow-sm flex flex-col relative">
@@ -568,8 +582,8 @@ const Trips = () => {
             <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
                 <tr className="bg-gray-50/80 border-b border-gray-100">
-                  {['Request ID', 'Date', 'User Name', 'Driver Name', 'Transport Type', 'Trip Status', 'Payment Option', 'Action'].map((heading, i) => (
-                    <th key={heading} className={`px-4 py-2.5 text-[11px] font-bold text-gray-600 tracking-wide ${i === 7 ? 'text-right pr-5' : ''}`}>
+                  {['Request ID', 'Date', 'Customer', 'Driver', 'Route', 'Vehicle', 'Fare', 'Status', 'Payment', 'Action'].map((heading, i) => (
+                    <th key={heading} className={`px-4 py-2.5 text-[11px] font-bold text-gray-600 tracking-wide ${i === 9 ? 'text-right pr-5' : ''}`}>
                       {heading}
                     </th>
                   ))}
@@ -578,14 +592,14 @@ const Trips = () => {
               <tbody className="divide-y divide-gray-100">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="py-24 text-center">
+                    <td colSpan={10} className="py-24 text-center">
                       <Loader2 className="animate-spin text-gray-300 mx-auto" size={32} />
                       <p className="mt-3 text-xs font-semibold text-gray-400 uppercase tracking-widest">Loading Requests...</p>
                     </td>
                   </tr>
                 ) : error ? (
                   <tr>
-                    <td colSpan={8} className="py-20 text-center">
+                    <td colSpan={10} className="py-20 text-center">
                        <div className="inline-flex items-center justify-center p-3 bg-red-50 text-red-500 rounded-full mb-3">
                           <XCircle size={24} />
                        </div>
@@ -597,11 +611,11 @@ const Trips = () => {
                     <tr key={row.id} className="hover:bg-gray-50/50 transition-colors group">
                       <td className="px-4 py-2 text-[13px] font-bold text-gray-900 font-mono">{row.requestId}</td>
                       <td className="px-4 py-2 text-[13px] font-medium text-gray-500">{formatDate(row.date)}</td>
-                      <td className="px-4 py-2 text-[13px] font-bold text-gray-700">{row.userName}</td>
-                      <td className="px-4 py-2 text-[13px] font-semibold text-gray-500">
-                         {row.driverName !== '--' ? row.driverName : <span className="text-gray-300 italic">Unassigned</span>}
-                      </td>
-                      <td className="px-4 py-2 text-[13px] font-bold text-gray-700 capitalize">{row.transportType.toLowerCase()}</td>
+                      <td className="px-4 py-2"><CustomerCell row={row} /></td>
+                      <td className="px-4 py-2"><DriverCell row={row} /></td>
+                      <td className="px-4 py-2"><RouteCell row={row} /></td>
+                      <td className="px-4 py-2"><VehicleCell row={row} /></td>
+                      <td className="px-4 py-2"><FareCell row={row} /></td>
                       <td className="px-4 py-2">
                         <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded capitalize tracking-wide ${STATUS_STYLES[row.tripStatus] || 'bg-gray-100 text-gray-600'}`}>
                           {row.tripStatus ? row.tripStatus.toLowerCase() : 'Unknown'}
@@ -630,7 +644,7 @@ const Trips = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={8} className="py-24 text-center">
+                    <td colSpan={10} className="py-24 text-center">
                       <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 mx-auto mb-3">
                          <Filter size={24} />
                       </div>
@@ -677,7 +691,7 @@ const Trips = () => {
         </div>
       </div>
 
-      <TripDetailsModal trip={selectedTrip} onClose={() => setSelectedTrip(null)} />
+      <BookingDetailsDrawer booking={selectedTrip} onClose={() => setSelectedTrip(null)} />
     </div>
   );
 };
