@@ -48,7 +48,8 @@ export const env = {
   // Used server-side for Directions. Present in .env all along, but never
   // read, which is why routing fell to the public OSRM demo host.
   googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || '',
-  mongoDbName: process.env.MONGODB_DB_NAME || 'appzeto_taxi',
+  // unset -> mongoose uses the database named in MONGODB_URI
+  mongoDbName: process.env.MONGODB_DB_NAME || undefined,
   jwtSecret: resolvedJwtSecret,
   jwtExpiresIn: resolvedJwtExpiresIn,
   corsOrigin: process.env.CORS_ORIGIN || process.env.FRONTEND_URL || '*',
