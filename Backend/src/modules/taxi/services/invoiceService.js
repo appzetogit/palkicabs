@@ -72,7 +72,9 @@ const formatDateTime = (date) =>
 // "0000000000" is the admin panel's placeholder, not a number worth printing.
 const realPhone = (value) => {
   const text = String(value || '').trim();
-  return /[1-9]/.test(text.replace(/\D/g, '')) ? text : '';
+  const digits = text.replace(/\D/g, '');
+  // all zeros / all nines / one repeated digit are placeholders
+  return digits.length >= 8 && !/^(\d)+$/.test(digits) ? text : '';
 };
 
 const companyDetails = (general, contact) => ({
