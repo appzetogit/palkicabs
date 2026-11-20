@@ -21,3 +21,13 @@ with no code change:
 `auto.jpg`, `dzire.jpg`, `ertiga.jpg`, `innova-crysta.jpg`, `fortuner.jpg` — 16:9, 1000x563 or larger.
 
 If you swap a file out, delete its row from the table above.
+
+## Added later (Wikimedia Commons, cropped to 16:9)
+
+| File | Source | Photographer | Licence |
+|---|---|---|---|
+| `bike.jpg` | Honda Activa Rental- Goa 1.jpg | Bssasidhar | CC0 |
+| `hatchback.jpg` | 2023 Maruti Suzuki Wagon R CBG.jpg | TTTNIS | CC0 |
+| `eeco.jpg` | Maruti Suzuki Eeco.jpg | Theodorenerdfinch | CC0 |
+| `swift.jpg` | Maruti Suzuki Swift 2092.JPG | Premnath Kudva | CC BY-SA 3.0 |
+| `traveller.jpg` | Force Motors - Traveller 26 - Agra 2014-05-14 4222.JPG | Biswarup Ganguly | CC BY 3.0 |
