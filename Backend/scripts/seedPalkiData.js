@@ -44,7 +44,7 @@ const rnd = () => ((seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967
 const jitter = (v, r) => +(v + (rnd() - 0.5) * 2 * r).toFixed(6);
 const pick = (a, i) => a[i % a.length];
 const upsert = (Model, filter, doc) =>
-  Model.findOneAndUpdate(filter, { $set: doc }, { upsert: true, new: true, setDefaultsOnInsert: true, runValidators: true });
+  Model.findOneAndUpdate(filter, { $set: doc }, { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true, runValidators: true });
 
 // ---- places ----------------------------------------------------------------
 const INDORE = { name: 'Indore', address: 'Indore, Madhya Pradesh, India', lat: 22.7196, lng: 75.8577 };
@@ -175,7 +175,11 @@ const run = async () => {
     const u = await upsert(User, { phone }, {
       phone, name, email: `${name.toLowerCase().replace(/\s+/g, '.')}.${i}@example.com`, gender: i % 3 === 2 ? 'female' : 'male',
       referralCode: `PK${String(10001 + i)}`, isVerified: true, isActive: true, active: true, role: 'user',
-      addresses: [{ label: 'Home', address: `${10 + i}, Main Road, ${city.c}`, latitude: jitter(city.lat, 0.04), longitude: jitter(city.lng, 0.04) }],
+      addresses: [{
+        label: 'Home', street: `${10 + i}, Main Road`, city: city.c, state: place === INDORE ? 'Madhya Pradesh' : 'Uttar Pradesh',
+        zipCode: place === INDORE ? '452001' : '226001', phone,
+        location: { type: 'Point', coordinates: [jitter(city.lng, 0.04), jitter(city.lat, 0.04)] }, isDefault: true,
+      }],
     });
     await UserWallet.findOneAndUpdate({ userId: u._id }, { $setOnInsert: { userId: u._id, balance: (i % 5) * 100, refundWallet: 0, transactions: [] } }, { upsert: true });
   }
