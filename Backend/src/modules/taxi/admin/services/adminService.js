@@ -7384,7 +7384,7 @@ const listAdminRides = async ({
   const fetchPooling = async (skip, take) => {
     const f = await poolingFilter();
     const [rows, total] = await Promise.all([
-      PoolingBooking.find(f).sort({ createdAt: -1 }).skip(skip).limit(take).populate('user', 'name phone').populate('route').populate('vehicle').lean(),
+      PoolingBooking.find(f).sort({ createdAt: -1 }).skip(skip).limit(take).populate({ path: 'user', model: User, select: 'name phone' }).populate({ path: 'route', model: PoolingRoute }).populate({ path: 'vehicle', model: PoolingVehicle }).lean(),
       PoolingBooking.countDocuments(f),
     ]);
     return { rows: rows.map(toAdminPoolingRow), total };
