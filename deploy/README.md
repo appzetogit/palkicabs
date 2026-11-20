@@ -1,57 +1,48 @@
 # Deployment
 
-PALKI runs on a **shared server** (`145.223.21.188`) next to many other
-projects. Everything below is scoped to PALKI alone: its own folder, port,
-database, PM2 process and nginx site. Never restart nginx, PM2 as a whole, or
-another project's process while deploying this one.
-
-Live at **https://palkicabs.buytogetherindia.com**.
+PALKI runs on its own server (`189.72.159.166`, Ubuntu) at **https://palkicabs.com**.
 
 | What | Where |
 |---|---|
-| Code (git clone of `appzetogit/palkicabs`) | `/opt/palkicabs` |
-| Backend process | PM2 `palkicabs-backend` → `127.0.0.1:5025` (see `Backend/ecosystem.config.cjs`) |
-| Database | MongoDB `127.0.0.1:27017`, database `palkicabs_taxi` |
+| Code (git clone of `appzetogit/palkicabs`) | `/opt/palkicabs`, owned by user `palki` |
+| Backend process | PM2 `palkicabs-backend` (user `palki`) -> `127.0.0.1:5025` (`Backend/ecosystem.config.cjs`) |
+| Database | MongoDB Atlas (`MONGODB_URI` in `Backend/.env`) |
+| Redis | local `redis-server`, bound to 127.0.0.1 |
 | Frontend | static build served from `/opt/palkicabs/frontend/dist` |
-| nginx site | `nginx/palkicabs.buytogetherindia.com.conf` → `/etc/nginx/sites-available/` (symlinked into `sites-enabled`) |
-| SSL | Let's Encrypt via certbot (`--nginx`), auto-renewed by `certbot.timer` |
-| Secrets | `Backend/.env`, `Backend/firebase-service-account.json`, `frontend/.env.production` — on the server only, git-ignored |
+| nginx site | `deploy/nginx/palkicabs.com.conf` -> `/etc/nginx/sites-available/` |
+| SSL | Let's Encrypt via certbot, auto-renewed by `certbot.timer` |
+| Secrets | `Backend/.env`, `frontend/.env.production` - on the server only, git-ignored |
 
-The nginx file in this folder is a copy of what is installed, so a rebuilt box
-can be brought back to the same state. It is **not** applied automatically.
+## DNS
+
+| Type | Host | Value |
+|---|---|---|
+| A | `@` | `189.72.159.166` |
+| A | `www` | `189.72.159.166` |
+
+## First-time setup (fresh server)
+
+```
+bash deploy/setup-server.sh        # as root
+# copy Backend/.env and frontend/.env.production into /opt/palkicabs (chown palki)
+/opt/palkicabs/deploy.sh
+certbot --nginx -d palkicabs.com -d www.palkicabs.com   # once DNS points here
+```
 
 ## Deploying an update
 
+Push to `main`, then on the server:
+
 ```
-cd /opt/palkicabs
-git pull
-cd frontend && npm ci && npm run build      # only when frontend/ changed
-cd ../Backend && npm ci --omit=dev          # only when Backend/package*.json changed
-pm2 restart palkicabs-backend --update-env  # only when Backend/ or .env changed
+/opt/palkicabs/deploy.sh
 ```
 
-`--update-env` matters when `.env` has changed; without it the process keeps its
-old environment.
+It pulls `origin/main`, runs the injected-code scanner (aborts if it finds
+anything), builds the frontend, installs backend deps, reloads PM2 and waits for
+`/health`.
 
 ## Why `index.html` must not be cached
 
-`index.html` names the hashed chunks, and each build replaces them. If a browser
-holds a stale `index.html`, it requests chunk filenames that no longer exist,
-gets 404s, and renders a **blank page**.
-
-The nginx config therefore splits the two:
-
-- `location = /index.html` → `no-cache, must-revalidate`
-- `location /assets/` → `public, immutable`, one year
-
-Keep that split if the config is ever rewritten.
-
-## nginx changes
-
-Edit only PALKI's site file, then:
-
-```
-nginx -t && systemctl reload nginx
-```
-
-`reload`, never `restart`: a reload keeps every other site on the box serving.
+`index.html` names the hashed chunks, and each build replaces them. A stale
+`index.html` requests chunk filenames that no longer exist and renders a blank
+page, so nginx serves it with `no-cache`.
