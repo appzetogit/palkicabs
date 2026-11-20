@@ -344,8 +344,9 @@ const Trips = () => {
     return rows.filter(row => {
       if (activeFilters.transportType && row.transportType.toLowerCase() !== activeFilters.transportType.toLowerCase()) return false;
       if (activeFilters.paymentOption && row.paymentOption.toLowerCase() !== activeFilters.paymentOption.toLowerCase()) return false;
-      if (activeFilters.driverAssigned === 'assigned' && row.driverName === '--') return false;
-      if (activeFilters.driverAssigned === 'unassigned' && row.driverName !== '--') return false;
+      const noDriver = row.driverName === '--' || row.driverName === 'Unassigned';
+      if (activeFilters.driverAssigned === 'assigned' && noDriver) return false;
+      if (activeFilters.driverAssigned === 'unassigned' && !noDriver) return false;
 
       if (activeFilters.dateFrom || activeFilters.dateTo) {
         const rowDate = new Date(row.date);

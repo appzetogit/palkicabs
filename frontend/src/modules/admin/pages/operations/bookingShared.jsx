@@ -190,7 +190,7 @@ export const BookingDetailsDrawer = ({ booking, onClose }) => {
             {f.waitingCharge ? <Line label={`Waiting charge (${f.waitingMinutes} min)`} value={f.waitingCharge} /> : null}
             {f.tollCharges ? <Line label="Toll" value={f.tollCharges} /> : null}
             {f.airportFee ? <Line label="Airport fee" value={f.airportFee} /> : null}
-            {f.surgeMultiplier ? <Line label={`Surge x${f.surgeMultiplier}`} value={0} /> : null}
+            {f.surgeMultiplier > 1 ? <Line label={`Surge x${f.surgeMultiplier}`} value={0} /> : null}
             {f.platformFee ? <Line label="Platform fee" value={f.platformFee} /> : null}
             {f.promoDiscount ? <Line label={`Promo ${f.promoCode}`} value={f.promoDiscount} minus /> : null}
             <Line label="Total fare" value={f.totalFare ?? b.fare} bold />

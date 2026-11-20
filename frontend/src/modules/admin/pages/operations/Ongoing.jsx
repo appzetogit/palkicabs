@@ -262,7 +262,7 @@ const Ongoing = () => {
     if (f.status && String(row.tripStatus || '').toLowerCase() !== f.status.toLowerCase()) return false;
     if (f.transportType && String(row.transportType || '').toLowerCase() !== f.transportType.toLowerCase()) return false;
     if (f.paymentType && String(row.paymentOption || '').toLowerCase() !== f.paymentType.toLowerCase()) return false;
-    const noDriver = !row.driver;
+    const noDriver = !row.driverName || row.driverName === 'Unassigned' || row.driverName === '--';
     if (f.driverAssigned === 'assigned' && noDriver) return false;
     if (f.driverAssigned === 'unassigned' && !noDriver) return false;
     const when = new Date(row.date);
