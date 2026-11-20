@@ -3,6 +3,7 @@
 # Run as `palki` (or root - it re-runs itself as palki). Touches only PALKI.
 set -euo pipefail
 APP=/opt/palkicabs
+cd /
 [ "$(id -un)" = palki ] || exec sudo -u palki -H bash "$APP/deploy.sh" "$@"
 cd "$APP"
 
