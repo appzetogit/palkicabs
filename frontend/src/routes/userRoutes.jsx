@@ -84,7 +84,7 @@ const userRoutes = (
       <Route element={<UserAppLayout />}>
         <Route path="/taxi/user" element={<UserHomeRoute taxiPrefixed />} />
         <Route path="/taxi/user/activity" element={<Activity />} />
-        <Route path="/taxi/user/bus" element={<BusHome />} />
+        {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/bus" element={<BusHome />} /> */}
         <Route path="/taxi/user/support" element={<Support />} />
         <Route path="/taxi/user/profile" element={<Profile />} />
         <Route path="/taxi/user/referral" element={<UserReferral />} />
@@ -112,12 +112,12 @@ const userRoutes = (
       <Route path="/taxi/user/pooling/list" element={<UserPoolingList />} />
       <Route path="/taxi/user/pooling/seats/:id" element={<UserPoolingSeats />} />
       <Route path="/taxi/user/pooling/confirm" element={<UserPoolingConfirm />} />
-      <Route path="/taxi/user/rental" element={<BikeRentalHome />} />
-      <Route path="/taxi/user/rental/vehicle" element={<RentalVehicleDetail />} />
-      <Route path="/taxi/user/rental/schedule" element={<RentalSchedule />} />
-      <Route path="/taxi/user/rental/kyc" element={<RentalKYC />} />
-      <Route path="/taxi/user/rental/deposit" element={<RentalDeposit />} />
-      <Route path="/taxi/user/rental/confirmed" element={<RentalConfirmed />} />
+      {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/rental" element={<BikeRentalHome />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/rental/vehicle" element={<RentalVehicleDetail />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/rental/schedule" element={<RentalSchedule />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/rental/kyc" element={<RentalKYC />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/rental/deposit" element={<RentalDeposit />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/rental/confirmed" element={<RentalConfirmed />} /> */}
       <Route path="/taxi/user/intercity" element={<IntercityHome />} />
       <Route path="/taxi/user/intercity/vehicle" element={<IntercityVehicle />} />
       <Route path="/taxi/user/intercity/details" element={<IntercityDetails />} />
@@ -129,23 +129,23 @@ const userRoutes = (
       <Route path="/taxi/user/cab/shared/confirm" element={<SharedTaxiConfirm />} />
       <Route path="/taxi/user/cab/airport" element={<AirportCab />} />
       <Route path="/taxi/user/cab/airport-confirm" element={<AirportCabConfirm />} />
-      <Route path="/taxi/user/cab/spiritual" element={<SpiritualTrip />} />
-      <Route path="/taxi/user/cab/spiritual-vehicle" element={<SpiritualTripVehicle />} />
-      <Route path="/taxi/user/cab/spiritual-confirm" element={<SpiritualTripConfirm />} />
-      <Route path="/taxi/user/bus/list" element={<BusList />} />
-      <Route path="/taxi/user/bus/seats" element={<BusSeats />} />
-      <Route path="/taxi/user/bus/details" element={<BusPreview />} />
-      <Route path="/taxi/user/bus/checkout" element={<BusDetails />} />
-      <Route path="/taxi/user/bus/confirm" element={<BusConfirm />} />
-      <Route path="/taxi/user/tours" element={<ComingSoon />} />
+      {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/cab/spiritual" element={<SpiritualTrip />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/cab/spiritual-vehicle" element={<SpiritualTripVehicle />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/cab/spiritual-confirm" element={<SpiritualTripConfirm />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/bus/list" element={<BusList />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/bus/seats" element={<BusSeats />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/bus/details" element={<BusPreview />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/bus/checkout" element={<BusDetails />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/bus/confirm" element={<BusConfirm />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/tours" element={<ComingSoon />} /> */}
 
       <Route path="/taxi/user/wallet" element={<Wallet />} />
 
       <Route path="/taxi/user/profile/settings" element={<ProfileSettings />} />
       <Route path="/taxi/user/profile/payments" element={<PaymentSettings />} />
       <Route path="/taxi/user/profile/addresses" element={<AddressSettings />} />
-      <Route path="/taxi/user/profile/bus-bookings" element={<BusBookings />} />
-      <Route path="/taxi/user/profile/bus-bookings/:id" element={<BusBookingDetail />} />
+      {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/profile/bus-bookings" element={<BusBookings />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/profile/bus-bookings/:id" element={<BusBookingDetail />} /> */}
       <Route path="/taxi/user/profile/subscriptions" element={<UserSubscriptions />} />
       <Route path="/taxi/user/profile/notifications" element={<UserNotifications />} />
       <Route path="/taxi/user/profile/delete-account" element={<DeleteAccount />} />

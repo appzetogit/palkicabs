@@ -111,15 +111,15 @@ userRouter.get('/route', authenticate(['user', 'driver']), routeRateLimit, async
 // Tolls on an outstation trip, per vehicle, for the quoted fares.
 userRouter.get('/outstation-tolls', authenticate(['user']), routeRateLimit, getOutstationTolls);
 userRouter.get('/zones', asyncHandler(getZones));
-userRouter.get('/rental-vehicles', asyncHandler(getPublicRentalVehicleCatalog));
+// HIDDEN (bus/rental): userRouter.get('/rental-vehicles', asyncHandler(getPublicRentalVehicleCatalog));
 userRouter.get('/service-locations', asyncHandler(listPublicServiceLocations));
-userRouter.get('/service-stores', asyncHandler(listPublicServiceStores));
-userRouter.post('/rental-quote-requests', asyncHandler(createRentalQuoteRequest));
-userRouter.post('/rental-bookings', authenticate(['user']), asyncHandler(createRentalBookingRequest));
-userRouter.get('/rental-bookings', authenticate(['user']), asyncHandler(listMyRentalBookings));
-userRouter.get('/rental-bookings/active', authenticate(['user']), asyncHandler(getMyActiveRentalBooking));
-userRouter.post('/rental-bookings/:id/end', authenticate(['user']), asyncHandler(endMyActiveRentalRide));
-userRouter.post('/rental-bookings/:id/location', authenticate(['user']), asyncHandler(updateMyActiveRentalLocation));
+// HIDDEN (bus/rental): userRouter.get('/service-stores', asyncHandler(listPublicServiceStores));
+// HIDDEN (bus/rental): userRouter.post('/rental-quote-requests', asyncHandler(createRentalQuoteRequest));
+// HIDDEN (bus/rental): userRouter.post('/rental-bookings', authenticate(['user']), asyncHandler(createRentalBookingRequest));
+// HIDDEN (bus/rental): userRouter.get('/rental-bookings', authenticate(['user']), asyncHandler(listMyRentalBookings));
+// HIDDEN (bus/rental): userRouter.get('/rental-bookings/active', authenticate(['user']), asyncHandler(getMyActiveRentalBooking));
+// HIDDEN (bus/rental): userRouter.post('/rental-bookings/:id/end', authenticate(['user']), asyncHandler(endMyActiveRentalRide));
+// HIDDEN (bus/rental): userRouter.post('/rental-bookings/:id/location', authenticate(['user']), asyncHandler(updateMyActiveRentalLocation));
 userRouter.post('/register', asyncHandler(registerUser));
 userRouter.post('/signup', asyncHandler(signupUser));
 userRouter.post('/login', loginRateLimit, asyncHandler(loginUser));
@@ -159,23 +159,23 @@ userRouter.post('/wallet/razorpay/callback', asyncHandler(handleUserRazorpayWall
 userRouter.get('/wallet/razorpay/callback', asyncHandler(handleUserRazorpayWalletTopupCallback));
 userRouter.post('/wallet/phonepe/order', authenticate(['user']), paymentOrderRateLimit, asyncHandler(createPhonePeWalletTopupOrder));
 userRouter.get('/wallet/phonepe/status/:merchantTransactionId', authenticate(['user']), asyncHandler(verifyPhonePeWalletTopup));
-userRouter.post('/rental-advance/razorpay/order', authenticate(['user']), paymentOrderRateLimit, asyncHandler(createRentalAdvancePaymentOrder));
-userRouter.post('/rental-advance/razorpay/verify', authenticate(['user']), asyncHandler(verifyRentalAdvancePayment));
-userRouter.post('/rental-advance/phonepe/order', authenticate(['user']), paymentOrderRateLimit, asyncHandler(createPhonePeRentalAdvancePaymentOrder));
-userRouter.get('/rental-advance/phonepe/status/:merchantTransactionId', authenticate(['user']), asyncHandler(verifyPhonePeRentalAdvancePayment));
-userRouter.post('/rental-advance/wallet', authenticate(['user']), asyncHandler(payRentalAdvanceWithWallet));
+// HIDDEN (bus/rental): userRouter.post('/rental-advance/razorpay/order', authenticate(['user']), paymentOrderRateLimit, asyncHandler(createRentalAdvancePaymentOrder));
+// HIDDEN (bus/rental): userRouter.post('/rental-advance/razorpay/verify', authenticate(['user']), asyncHandler(verifyRentalAdvancePayment));
+// HIDDEN (bus/rental): userRouter.post('/rental-advance/phonepe/order', authenticate(['user']), paymentOrderRateLimit, asyncHandler(createPhonePeRentalAdvancePaymentOrder));
+// HIDDEN (bus/rental): userRouter.get('/rental-advance/phonepe/status/:merchantTransactionId', authenticate(['user']), asyncHandler(verifyPhonePeRentalAdvancePayment));
+// HIDDEN (bus/rental): userRouter.post('/rental-advance/wallet', authenticate(['user']), asyncHandler(payRentalAdvanceWithWallet));
 // The bus routes list without a login, for the public PALKI Bus page on the website.
-userRouter.get('/buses/popular-routes', asyncHandler(getBusRouteSuggestions));
+// HIDDEN (bus/rental): userRouter.get('/buses/popular-routes', asyncHandler(getBusRouteSuggestions));
 
-userRouter.get('/buses/routes', authenticate(['user']), asyncHandler(getBusRouteSuggestions));
-userRouter.get('/buses/search', authenticate(['user']), asyncHandler(searchBuses));
-userRouter.get('/buses/:id/seats', authenticate(['user']), asyncHandler(getBusSeatLayout));
-userRouter.get('/bus-bookings', authenticate(['user']), asyncHandler(listMyBusBookings));
-userRouter.get('/bus-bookings/:id', authenticate(['user']), asyncHandler(getMyBusBookingById));
-userRouter.post('/bus-bookings/:id/review', authenticate(['user']), asyncHandler(submitMyBusBookingReview));
-userRouter.post('/bus-bookings/order', authenticate(['user']), paymentOrderRateLimit, asyncHandler(createBusBookingOrder));
-userRouter.post('/bus-bookings/verify', authenticate(['user']), paymentOrderRateLimit, asyncHandler(verifyBusBookingPayment));
-userRouter.post('/bus-bookings/:id/cancel', authenticate(['user']), asyncHandler(cancelMyBusBooking));
+// HIDDEN (bus/rental): userRouter.get('/buses/routes', authenticate(['user']), asyncHandler(getBusRouteSuggestions));
+// HIDDEN (bus/rental): userRouter.get('/buses/search', authenticate(['user']), asyncHandler(searchBuses));
+// HIDDEN (bus/rental): userRouter.get('/buses/:id/seats', authenticate(['user']), asyncHandler(getBusSeatLayout));
+// HIDDEN (bus/rental): userRouter.get('/bus-bookings', authenticate(['user']), asyncHandler(listMyBusBookings));
+// HIDDEN (bus/rental): userRouter.get('/bus-bookings/:id', authenticate(['user']), asyncHandler(getMyBusBookingById));
+// HIDDEN (bus/rental): userRouter.post('/bus-bookings/:id/review', authenticate(['user']), asyncHandler(submitMyBusBookingReview));
+// HIDDEN (bus/rental): userRouter.post('/bus-bookings/order', authenticate(['user']), paymentOrderRateLimit, asyncHandler(createBusBookingOrder));
+// HIDDEN (bus/rental): userRouter.post('/bus-bookings/verify', authenticate(['user']), paymentOrderRateLimit, asyncHandler(verifyBusBookingPayment));
+// HIDDEN (bus/rental): userRouter.post('/bus-bookings/:id/cancel', authenticate(['user']), asyncHandler(cancelMyBusBooking));
 
 userRouter.get('/pooling/search', authenticate(['user']), asyncHandler(searchPoolingRoutes));
 userRouter.get('/pooling/routes/:id', authenticate(['user']), asyncHandler(getPoolingRouteDetails));

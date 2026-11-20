@@ -90,9 +90,9 @@ const driverRoutes = (
     <Route path="select-role" element={<RoleSelection />} />
     <Route path="step-personal" element={<StepPersonal />} />
     <Route path="role-signup" element={<RoleSpecificOnboarding />} />
-    <Route path="role-signup/bus-builder" element={<Navigate to="/taxi/driver/role-signup/bus-builder/create" replace />} />
-    <Route path="role-signup/bus-builder/create" element={<BusSignupBuilderPage />} />
-    <Route path="role-signup/bus-builder/edit/:id" element={<BusSignupBuilderPage />} />
+    {/* HIDDEN (bus/rental/spiritual): <Route path="role-signup/bus-builder" element={<Navigate to="/taxi/driver/role-signup/bus-builder/create" replace />} /> */}
+    {/* HIDDEN (bus/rental/spiritual): <Route path="role-signup/bus-builder/create" element={<BusSignupBuilderPage />} /> */}
+    {/* HIDDEN (bus/rental/spiritual): <Route path="role-signup/bus-builder/edit/:id" element={<BusSignupBuilderPage />} /> */}
     <Route path="step-referral" element={<StepReferral />} />
     <Route path="step-vehicle" element={<StepVehicle />} />
     <Route path="step-documents" element={<StepDocuments />} />
@@ -100,9 +100,9 @@ const driverRoutes = (
     <Route path="status" element={<ApplicationStatus />} />
 
     <Route path="home" element={<DriverHome />} />
-    <Route path="bus-home" element={<BusDriverHome />} />
-    <Route path="bus-home/live-route" element={<BusDriverLiveRoute />} />
-    <Route path="bus-home/tickets" element={<BusConductorTickets />} />
+    {/* HIDDEN (bus/rental/spiritual): <Route path="bus-home" element={<BusDriverHome />} /> */}
+    {/* HIDDEN (bus/rental/spiritual): <Route path="bus-home/live-route" element={<BusDriverLiveRoute />} /> */}
+    {/* HIDDEN (bus/rental/spiritual): <Route path="bus-home/tickets" element={<BusConductorTickets />} /> */}
     <Route path="pooling" element={<PoolingDriverDashboard />} />
     <Route path="pooling/onboarding" element={<PoolingDriverOnboarding />} />
     <Route path="pooling/status" element={<PoolingDriverPendingStatus />} />
@@ -113,9 +113,9 @@ const driverRoutes = (
     <Route path="wallet" element={<DriverWallet />} />
     <Route path="profile" element={<DriverProfile />} />
     <Route path="profile/bank-details" element={<DriverBankDetailsPage />} />
-    <Route path="service-center" element={<ServiceCenterDashboard />} />
-    <Route path="service-center/vehicles/new" element={<ServiceCenterVehicleDetails />} />
-    <Route path="service-center/vehicles/:vehicleId" element={<ServiceCenterVehicleDetails />} />
+    {/* HIDDEN (rental): <Route path="service-center" element={<ServiceCenterDashboard />} /> */}
+    {/* HIDDEN (rental): <Route path="service-center/vehicles/new" element={<ServiceCenterVehicleDetails />} /> */}
+    {/* HIDDEN (rental): <Route path="service-center/vehicles/:vehicleId" element={<ServiceCenterVehicleDetails />} /> */}
     <Route path="history" element={<RideRequests />} />
     <Route path="incentives" element={<DriverIncentives />} />
 

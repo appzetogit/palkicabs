@@ -33,11 +33,11 @@ const bootstrap = async () => {
   startDispatchRecoveryLoop();
   startDriverSubscriptionExpiryLoop();
   startSurgeEngineLoop();
-  startBusHoldSweeper();
-  startBusPaymentReconciler();
-  startDhabaAlertLoop();
-  startChannelWebhookRetryLoop();
-  startChannelPullLoop();
+  // HIDDEN (bus): startBusHoldSweeper();
+  // HIDDEN (bus): startBusPaymentReconciler();
+  // HIDDEN (bus): startDhabaAlertLoop();
+  // HIDDEN (bus): startChannelWebhookRetryLoop();
+  // HIDDEN (bus): startChannelPullLoop();
 
   // Loopback by default: nginx is the only thing that should reach these
   // processes, and with several instances on 5000-5003 a public bind would let

@@ -37,6 +37,7 @@ import parcelFallback from '../../../assets/user-app/parcel.png';
 import truckFallback from '../../../assets/user-app/truck.png';
 import busFallback from '../../../assets/user-app/bus.png';
 import fallbackCar from '../../../assets/user-app/fallback-car.png';
+import { isHiddenService } from '../../../shared/utils/hiddenServices';
 
 const getFallbackIcon = (module = {}) => {
   const name = String(module?.name || '').toLowerCase();
@@ -659,7 +660,8 @@ const ServiceGrid = ({
 
   const activeModules = React.useMemo(() => {
     return (modules || []).filter(
-      (m) => m.active === 1 || m.active === true || String(m.active) === '1' || String(m.active) === 'true'
+      (m) => (m.active === 1 || m.active === true || String(m.active) === '1' || String(m.active) === 'true')
+        && !isHiddenService(m) // HIDDEN (bus/rental/spiritual)
     );
   }, [modules]);
 

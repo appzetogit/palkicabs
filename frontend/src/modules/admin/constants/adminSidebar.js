@@ -88,6 +88,7 @@ export const ADMIN_SIDEBAR_SECTIONS = [
           { label: 'Hike Slots', path: '/admin/pricing/price-hike', permission: 'set_prices.view' },
         ],
       },
+      /* HIDDEN (rental, bus, dhaba):
       {
         icon: Briefcase,
         label: 'Rental',
@@ -130,6 +131,7 @@ export const ADMIN_SIDEBAR_SECTIONS = [
           { label: 'Payouts & Commission', path: '/admin/dhabas/payouts', permission: 'bus_service.view' },
         ],
       },
+      */
       {
         icon: Share2,
         label: 'Car Pooling',

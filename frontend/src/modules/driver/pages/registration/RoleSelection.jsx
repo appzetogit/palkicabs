@@ -31,34 +31,34 @@ const ROLE_OPTIONS = [
     Icon: CarFront,
     color: 'text-cyan-500',
   },
-  {
+  /* HIDDEN (bus/rental): {
     id: 'bus_driver',
     label: 'Bus Driver',
     description: 'Use this when your number should be linked to a bus service account.',
     Icon: BusFront,
     color: 'text-blue-500',
-  },
-  {
+  }, */
+  /* HIDDEN (bus/rental): {
     id: 'service_center',
     label: 'Service Center-Rental Vehicle',
     description: 'For rental inspection centers and store-level service accounts.',
     Icon: Building2,
     color: 'text-violet-500',
-  },
-  {
+  }, */
+  /* HIDDEN (bus/rental): {
     id: 'service_center_staff',
     label: 'Service Center Staff',
     description: 'For staff numbers already assigned under a service center.',
     Icon: UserRound,
     color: 'text-rose-500',
-  },
-  {
+  }, */
+  /* HIDDEN (bus/rental): {
     id: 'dhaba_owner',
     label: 'Dhaba Owner',
     description: 'Register your highway dhaba to take food pre-orders from PALKI Bus passengers.',
     Icon: UtensilsCrossed,
     color: 'text-orange-500',
-  },
+  }, */
 ];
 
 const unwrap = (response) => response?.data?.data || response?.data || response;

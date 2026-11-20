@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../api/axiosInstance';
 import { BACKEND_ORIGIN } from '../api/runtimeConfig';
+import { isHiddenService } from '../utils/hiddenServices';
 
 // Favicon object URL tracking removed
 const SETTINGS_CACHE_KEY = 'appSettingsCache:v1';
@@ -80,7 +81,8 @@ const normalizeBooleanSetting = (value, fallback = '0') => {
 
 const normalizeTransportRideSettings = (settings = {}) => ({
   ...settings,
-  enable_bus_service: normalizeBooleanSetting(settings?.enable_bus_service, '0'),
+  // HIDDEN (bus): enable_bus_service: normalizeBooleanSetting(settings?.enable_bus_service, '0'),
+  enable_bus_service: '0',
 });
 
 const normalizeHexColor = (value, fallback = '') => {
@@ -231,7 +233,8 @@ export const SettingsProvider = ({ children }) => {
       });
 
       setSettings(nextSettings);
-      setModules(data.modules || []);
+      // HIDDEN (bus/rental/spiritual): setModules(data.modules || []);
+      setModules((data.modules || []).filter((m) => !isHiddenService(m)));
       setHasBootstrapSettings(true);
       writeCachedSettings(nextSettings);
     } catch (err) {

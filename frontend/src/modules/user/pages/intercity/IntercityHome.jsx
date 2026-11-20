@@ -1041,13 +1041,13 @@ const IntercityHome = () => {
         </button>
 
         {/* LOCAL */}
-        <button
+{/* HIDDEN (bus/rental/spiritual):         <button
           onClick={() => navigate(`${routePrefix}/rental`)}
           className="flex flex-col items-center justify-center h-full border-r border-slate-100 text-slate-500 hover:bg-slate-50 transition-colors"
         >
           <Clock size={18} strokeWidth={2.5} className="mb-0.5" />
           <span className="text-[9px] tracking-wide uppercase font-extrabold">Local</span>
-        </button>
+        </button> */}
 
         {/*
         <button

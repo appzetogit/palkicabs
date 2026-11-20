@@ -4,6 +4,7 @@ import { DhabaEarnings, DhabaLayout, DhabaLogin, DhabaMenu, DhabaOrders, DhabaRe
 // Partner panel for highway dhabas (PALKI Bus food pre-orders).
 const dhabaRoutes = (
   <>
+    {/* HIDDEN (bus): dhaba partner panel belongs to PALKI Bus
     <Route path="/dhaba/login" element={<DhabaLogin />} />
     <Route path="/dhaba/register" element={<DhabaRegister />} />
     <Route path="/dhaba" element={<DhabaLayout />}>
@@ -11,6 +12,7 @@ const dhabaRoutes = (
       <Route path="menu" element={<DhabaMenu />} />
       <Route path="earnings" element={<DhabaEarnings />} />
     </Route>
+    */}
   </>
 );
 

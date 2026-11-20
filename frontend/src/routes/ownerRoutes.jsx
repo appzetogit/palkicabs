@@ -59,12 +59,12 @@ const ownerRoutes = (
     <Route path="status" element={<ApplicationStatus />} />
     <Route path="home" element={<OwnerDashboard />} />
     <Route path="dashboard" element={<OwnerDashboard />} />
-    <Route path="bus-service" element={<OwnerBusServicePage />} />
-    <Route path="bus-service/create" element={<OwnerBusServicePage />} />
-    <Route path="bus-service/edit/:id" element={<OwnerBusServicePage />} />
-    <Route path="bus-service/:id" element={<OwnerBusServicePage />} />
-    <Route path="bus-bookings" element={<OwnerBusBookingsPage />} />
-    <Route path="bus-dashboard" element={<OwnerBusDashboard />} />
+    {/* HIDDEN (bus/rental/spiritual): <Route path="bus-service" element={<OwnerBusServicePage />} /> */}
+    {/* HIDDEN (bus/rental/spiritual): <Route path="bus-service/create" element={<OwnerBusServicePage />} /> */}
+    {/* HIDDEN (bus/rental/spiritual): <Route path="bus-service/edit/:id" element={<OwnerBusServicePage />} /> */}
+    {/* HIDDEN (bus/rental/spiritual): <Route path="bus-service/:id" element={<OwnerBusServicePage />} /> */}
+    {/* HIDDEN (bus/rental/spiritual): <Route path="bus-bookings" element={<OwnerBusBookingsPage />} /> */}
+    {/* HIDDEN (bus/rental/spiritual): <Route path="bus-dashboard" element={<OwnerBusDashboard />} /> */}
     <Route path="pooling-vehicles" element={<OwnerPoolingVehicleForm />} />
     <Route path="pooling-vehicles/create" element={<OwnerPoolingVehicleForm />} />
     <Route path="profile" element={<DriverProfile />} />

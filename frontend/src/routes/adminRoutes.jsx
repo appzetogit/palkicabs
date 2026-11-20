@@ -220,25 +220,25 @@ const adminRoutes = (
       <Route path="trips" element={<AdminTrips />} />
       <Route path="deliveries" element={<AdminDeliveries />} />
       <Route path="ongoing" element={<AdminOngoing />} />
-      <Route path="bus-service" element={<AdminBusServiceManager />} />
-      <Route path="bus-service/pending-drivers" element={<AdminPendingBusDrivers />} />
-      <Route path="bus-service/create" element={<AdminBusServiceManager mode="create" />} />
-      <Route path="bus-service/edit/:id" element={<AdminBusServiceManager mode="edit" />} />
-      <Route path="bus-service/commission" element={<AdminBusCommissionManager />} />
-      <Route path="bus-service/bookings" element={<AdminBusBookingManager />} />
-      <Route path="bus-service/vendor-wallets" element={<AdminBusVendorWallets />} />
-      <Route path="bus-service/inventory" element={<AdminPalkibusSeatInventory />} />
-      <Route path="bus-service/operators" element={<AdminPalkibusBusOperators />} />
-      <Route path="bus-service/channels" element={<AdminPalkibusBookingChannels />} />
-      <Route path="bus-service/dhabas" element={<Navigate to="/admin/dhabas" replace />} />
-      <Route path="bus-service/dhaba-orders" element={<Navigate to="/admin/dhabas/orders" replace />} />
-      <Route path="dhabas" element={<AdminPalkibusDhabaPartners />} />
-      <Route path="dhabas/pending" element={<AdminPalkibusDhabaPartners />} />
-      <Route path="dhabas/rejected" element={<AdminPalkibusDhabaPartners />} />
-      <Route path="dhabas/payouts" element={<AdminPalkibusDhabaPartners />} />
-      <Route path="dhabas/orders" element={<AdminPalkibusDhabaOrders />} />
-      <Route path="dhabas/food-categories" element={<AdminPalkibusFoodCategories />} />
-      <Route path="bus-service/:id" element={<AdminBusServiceDetails />} />
+      {/* HIDDEN (bus/rental/spiritual): <Route path="bus-service" element={<AdminBusServiceManager />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="bus-service/pending-drivers" element={<AdminPendingBusDrivers />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="bus-service/create" element={<AdminBusServiceManager mode="create" />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="bus-service/edit/:id" element={<AdminBusServiceManager mode="edit" />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="bus-service/commission" element={<AdminBusCommissionManager />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="bus-service/bookings" element={<AdminBusBookingManager />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="bus-service/vendor-wallets" element={<AdminBusVendorWallets />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="bus-service/inventory" element={<AdminPalkibusSeatInventory />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="bus-service/operators" element={<AdminPalkibusBusOperators />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="bus-service/channels" element={<AdminPalkibusBookingChannels />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="bus-service/dhabas" element={<Navigate to="/admin/dhabas" replace />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="bus-service/dhaba-orders" element={<Navigate to="/admin/dhabas/orders" replace />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="dhabas" element={<AdminPalkibusDhabaPartners />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="dhabas/pending" element={<AdminPalkibusDhabaPartners />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="dhabas/rejected" element={<AdminPalkibusDhabaPartners />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="dhabas/payouts" element={<AdminPalkibusDhabaPartners />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="dhabas/orders" element={<AdminPalkibusDhabaOrders />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="dhabas/food-categories" element={<AdminPalkibusFoodCategories />} /> */}
+      {/* HIDDEN (bus/rental/spiritual): <Route path="bus-service/:id" element={<AdminBusServiceDetails />} /> */}
       <Route path="pooling" element={<Navigate to="/admin/pooling/routes" replace />} />
       <Route path="pooling/routes" element={<AdminPoolingManager />} />
       <Route path="pooling/pending-drivers" element={<AdminPendingPoolingDrivers />} />
@@ -351,12 +351,12 @@ const adminRoutes = (
         <Route path="service-location/jurisdictions/:jurisdictionName" element={<AdminServiceLocation mode="jurisdictions" />} />
         <Route path="service-location/add" element={<AdminServiceLocation mode="create" />} />
         <Route path="service-location/edit/:id" element={<AdminServiceLocation mode="edit" />} />
-        <Route path="service-stores" element={<AdminServiceStores />} />
-        <Route path="service-stores/pending" element={<AdminPendingServiceStores />} />
-        <Route path="service-stores/pending-staff" element={<AdminPendingServiceStaff />} />
-        <Route path="rental-commission" element={<AdminRentalCommissionManager />} />
-        <Route path="service-stores/add" element={<AdminServiceStores mode="create" />} />
-        <Route path="service-stores/edit/:id" element={<AdminServiceStores mode="edit" />} />
+        {/* HIDDEN (rental): <Route path="service-stores" element={<AdminServiceStores />} /> */}
+        {/* HIDDEN (rental): <Route path="service-stores/pending" element={<AdminPendingServiceStores />} /> */}
+        {/* HIDDEN (rental): <Route path="service-stores/pending-staff" element={<AdminPendingServiceStaff />} /> */}
+        {/* HIDDEN (bus/rental/spiritual): <Route path="rental-commission" element={<AdminRentalCommissionManager />} /> */}
+        {/* HIDDEN (rental): <Route path="service-stores/add" element={<AdminServiceStores mode="create" />} /> */}
+        {/* HIDDEN (rental): <Route path="service-stores/edit/:id" element={<AdminServiceStores mode="edit" />} /> */}
         <Route path="app-modules" element={<AdminAppModules />} />
         <Route path="app-modules/create" element={<AdminAppModules mode="create" />} />
         <Route path="app-modules/edit/:id" element={<AdminAppModules mode="edit" />} />
@@ -370,26 +370,26 @@ const adminRoutes = (
         <Route path="vehicle-type" element={<AdminVehicleType />} />
         <Route path="vehicle-type/create" element={<AdminVehicleType mode="create" />} />
         <Route path="vehicle-type/edit/:id" element={<AdminVehicleType mode="edit" />} />
-        <Route path="rental-vehicles" element={<AdminRentalVehicleTypes />} />
-        <Route path="rental-vehicles/create" element={<AdminRentalVehicleTypes mode="create" />} />
-        <Route path="rental-vehicles/edit/:id" element={<AdminRentalVehicleTypes mode="edit" />} />
-        <Route path="rental-vehicles/view/:id" element={<AdminRentalVehicleTypes mode="view" />} />
-        <Route path="rental-tracking" element={<AdminRentalTracking />} />
-        <Route path="rental-tracking/:id" element={<AdminRentalTrackingDetail />} />
-        <Route path="rental-requests" element={<AdminRentalBookingRequests />} />
-        <Route path="rental-quotes" element={<AdminRentalQuoteRequests />} />
-        <Route path="rental-packages" element={<AdminRentalPackageTypes />} />
-        <Route path="rental-packages/create" element={<AdminRentalPackageTypes mode="create" />} />
-        <Route path="rental-packages/edit/:id" element={<AdminRentalPackageTypes mode="edit" />} />
+        {/* HIDDEN (bus/rental/spiritual): <Route path="rental-vehicles" element={<AdminRentalVehicleTypes />} /> */}
+        {/* HIDDEN (bus/rental/spiritual): <Route path="rental-vehicles/create" element={<AdminRentalVehicleTypes mode="create" />} /> */}
+        {/* HIDDEN (bus/rental/spiritual): <Route path="rental-vehicles/edit/:id" element={<AdminRentalVehicleTypes mode="edit" />} /> */}
+        {/* HIDDEN (bus/rental/spiritual): <Route path="rental-vehicles/view/:id" element={<AdminRentalVehicleTypes mode="view" />} /> */}
+        {/* HIDDEN (bus/rental/spiritual): <Route path="rental-tracking" element={<AdminRentalTracking />} /> */}
+        {/* HIDDEN (bus/rental/spiritual): <Route path="rental-tracking/:id" element={<AdminRentalTrackingDetail />} /> */}
+        {/* HIDDEN (bus/rental/spiritual): <Route path="rental-requests" element={<AdminRentalBookingRequests />} /> */}
+        {/* HIDDEN (bus/rental/spiritual): <Route path="rental-quotes" element={<AdminRentalQuoteRequests />} /> */}
+        {/* HIDDEN (bus/rental/spiritual): <Route path="rental-packages" element={<AdminRentalPackageTypes />} /> */}
+        {/* HIDDEN (bus/rental/spiritual): <Route path="rental-packages/create" element={<AdminRentalPackageTypes mode="create" />} /> */}
+        {/* HIDDEN (bus/rental/spiritual): <Route path="rental-packages/edit/:id" element={<AdminRentalPackageTypes mode="edit" />} /> */}
         <Route path="set-price" element={<AdminSetPrices />} />
         <Route path="set-price/create" element={<AdminSetPrices mode="create" />} />
         <Route path="set-price/edit/:id" element={<AdminSetPrices mode="edit" />} />
         <Route path="set-price/packages/:id" element={<AdminSetPackagePrices />} />
         <Route path="set-price/packages/create/:id" element={<AdminCreatePackagePrice mode="create" />} />
         <Route path="set-price/packages/edit/:packageId" element={<AdminCreatePackagePrice mode="edit" />} />
-        <Route path="package-pricing" element={<AdminSetPackagePrices />} />
-        <Route path="package-pricing/create" element={<AdminCreatePackagePrice mode="create" />} />
-        <Route path="package-pricing/edit/:packageId" element={<AdminCreatePackagePrice mode="edit" />} />
+        {/* HIDDEN (rental): <Route path="package-pricing" element={<AdminSetPackagePrices />} /> */}
+        {/* HIDDEN (rental): <Route path="package-pricing/create" element={<AdminCreatePackagePrice mode="create" />} /> */}
+        {/* HIDDEN (rental): <Route path="package-pricing/edit/:packageId" element={<AdminCreatePackagePrice mode="edit" />} /> */}
         <Route path="set-price/incentive/:id" element={<AdminDriverIncentive />} />
         <Route path="set-price/surge/:id" element={<AdminSurgePricing />} />
         <Route path="price-hike" element={<AdminPriceHike />} />

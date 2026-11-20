@@ -106,11 +106,8 @@ const Services = ({ openBookingModal }) => {
                     <button
                       className="btn btn-teal w-full mt-4"
                       onClick={() => {
-                        if (s.id === 'bus' || normalise(s.title).includes('bus')) {
-                          navigate('/bus');
-                        } else {
-                          openBookingModal?.();
-                        }
+                        // HIDDEN (bus): navigate('/bus') removed
+                        openBookingModal?.();
                       }}
                     >
                       {servicesPage.ctaLabel} <ArrowRight size={16} />

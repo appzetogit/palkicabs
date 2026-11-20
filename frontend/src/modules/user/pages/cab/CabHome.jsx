@@ -74,7 +74,8 @@ const CabHome = () => {
   const location = useLocation();
   const { settings } = useSettings();
   const showBusService = isEnabledFlag(settings.transportRide?.enable_bus_service);
-  const visibleServices = services.filter((service) => showBusService || service.id !== 'bus');
+  // HIDDEN (bus/spiritual): const visibleServices = services.filter((service) => showBusService || service.id !== 'bus');
+  const visibleServices = services.filter((service) => service.id !== 'bus' && service.id !== 'spiritual');
   const routePrefix = location.pathname.startsWith('/taxi/user') ? '/taxi/user' : '';
 
   return (

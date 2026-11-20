@@ -275,7 +275,7 @@ const PhoneRegistration = () => {
         Need help? <span className="font-semibold text-amber-700">Contact support</span>
       </button>
 
-      {!isOwnerPortal ? (
+{/* HIDDEN (bus):       {!isOwnerPortal ? (
         <button
           type="button"
           onClick={() => navigate('/bus-login')}
@@ -283,9 +283,9 @@ const PhoneRegistration = () => {
         >
           Run a bus? <span className="font-semibold text-amber-700">Go to bus login</span>
         </button>
-      ) : null}
+      ) : null} */}
 
-      {!isOwnerPortal ? (
+{/* HIDDEN (bus dhaba):       {!isOwnerPortal ? (
         <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-slate-200 pt-6">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
             <UtensilsCrossed size={18} />
@@ -311,7 +311,7 @@ const PhoneRegistration = () => {
             </button>
           </div>
         </div>
-      ) : null}
+      ) : null} */}
     </DriverAuthShell>
   );
 };
