@@ -233,6 +233,7 @@ export const ADMIN_SIDEBAR_SECTIONS = [
           { label: 'Support Tickets', path: '/admin/support/tickets', permission: 'support.view' },
         ],
       },
+      /* HIDDEN (careers):
       {
         icon: Briefcase,
         label: 'Careers Management',
@@ -241,6 +242,7 @@ export const ADMIN_SIDEBAR_SECTIONS = [
           { label: 'Applications', path: '/admin/careers/applications', permission: 'support.view' },
         ],
       },
+      */
     ],
   },
   {

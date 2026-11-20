@@ -16,5 +16,5 @@ taxiRouter.use(userModuleRouter);
 taxiRouter.use(driverModuleRouter);
 taxiRouter.use(supportModuleRouter);
 taxiRouter.use(commonRouter);
-taxiRouter.use(careerRouter);
+// HIDDEN (careers): taxiRouter.use(careerRouter);
 // HIDDEN (bus): taxiRouter.use(busModuleRouter);

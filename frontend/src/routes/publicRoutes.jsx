@@ -85,7 +85,7 @@ const publicRoutes = (
     <Route path="/support" element={<SupportPage />} />
     <Route path="/faq" element={<FaqPage />} />
     <Route path="/blog" element={<BlogPage />} />
-    <Route path="/careers" element={<CareersPage />} />
+    {/* HIDDEN (careers): <Route path="/careers" element={<CareersPage />} /> */}
     <Route path="/links" element={<LinksPage />} />
     <Route path="/terms" element={<LegalPage />} />
     <Route path="/terms-and-conditions" element={<LegalPage />} />
