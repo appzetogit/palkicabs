@@ -3,7 +3,7 @@ import { Filter, MoreVertical, Search, Loader2, ChevronRight, CheckCircle, MapPi
 import { adminService } from '../../services/adminService';
 import toast from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
-import { BookingCell, BookingDetailsDrawer, CustomerCell, DriverCell, RouteCell, VehicleCell, FareCell, StatCards, money } from './bookingShared';
+import { BookingFilterBar, EMPTY_BOOKING_FILTERS, SERVICE_OPTIONS, BookingCell, BookingDetailsDrawer, CustomerCell, DriverCell, RouteCell, VehicleCell, FareCell, StatCards, money } from './bookingShared';
 
 const STATUS_STYLES = {
   ACCEPTED: 'bg-green-100 text-green-700 border border-green-200',
@@ -207,14 +207,7 @@ const Ongoing = () => {
     dateTo: ''
   });
   
-  const [activeFilters, setActiveFilters] = useState({
-    status: '',
-    transportType: '',
-    paymentType: '',
-    driverAssigned: '',
-    dateFrom: '',
-    dateTo: ''
-  });
+  const [activeFilters, setActiveFilters] = useState({ ...EMPTY_BOOKING_FILTERS });
 
   useEffect(() => {
     if (!trackRideId || trackedOpened.current || rows.length === 0) return;
@@ -378,96 +371,10 @@ const Ongoing = () => {
                   className="h-7 w-full rounded-md border border-gray-200 bg-gray-50 pl-7 pr-2 text-[10px] outline-none focus:bg-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all font-medium"
                 />
               </div>
-              <button 
-                onClick={() => setShowFilters(!showFilters)}
-                className={`flex h-7 items-center gap-1 px-2.5 rounded-md text-[10px] font-bold transition-colors border relative ${activeFilterCount > 0 ? 'bg-yellow-400 text-black border-yellow-400 shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
-              >
-                <Filter size={12} /> Filters
-                {activeFilterCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-black text-white text-[8px] rounded-full flex items-center justify-center font-bold">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </button>
+              
             </div>
           </div>
-
-          {/* Filter Dropdown */}
-          {showFilters && (
-            <div className="absolute right-0 top-[110px] lg:top-[60px] z-40 bg-white border border-gray-200 shadow-xl rounded-xl p-4 w-[400px] max-w-[calc(100vw-2rem)] mr-4 lg:mr-6 animate-in slide-in-from-top-2">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-gray-900 border-l-2 border-yellow-400 pl-2">Advanced Filters</h3>
-                <button onClick={() => setShowFilters(false)} className="text-gray-400 hover:text-gray-800"><X size={16}/></button>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-500 mb-1">Status</label>
-                  <select 
-                    value={draftFilters.status} 
-                    onChange={e => setDraftFilters({...draftFilters, status: e.target.value})}
-                    className="w-full h-8 border border-gray-200 rounded-md bg-gray-50 px-2 text-xs outline-none focus:border-yellow-400 font-medium"
-                  >
-                    <option value="">All Statuses</option>
-                    <option value="accepted">Accepted</option>
-                    <option value="upcoming">Upcoming</option>
-                    <option value="ongoing">Ongoing</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-500 mb-1">Transport Type</label>
-                  <select 
-                    value={draftFilters.transportType} 
-                    onChange={e => setDraftFilters({...draftFilters, transportType: e.target.value})}
-                    className="w-full h-8 border border-gray-200 rounded-md bg-gray-50 px-2 text-xs outline-none focus:border-yellow-400 font-medium"
-                  >
-                    <option value="">All Types</option>
-                    <option value="taxi">Taxi</option>
-                    <option value="bike">Bike</option>
-                    <option value="auto">Auto</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-500 mb-1">Payment Type</label>
-                  <select 
-                    value={draftFilters.paymentType} 
-                    onChange={e => setDraftFilters({...draftFilters, paymentType: e.target.value})}
-                    className="w-full h-8 border border-gray-200 rounded-md bg-gray-50 px-2 text-xs outline-none focus:border-yellow-400 font-medium"
-                  >
-                    <option value="">All Methods</option>
-                    <option value="cash">Cash</option>
-                    <option value="online">Online</option>
-                    <option value="wallet">Wallet</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-500 mb-1">Driver Assignment</label>
-                  <div className="flex bg-gray-50 p-1 rounded-md border border-gray-200 h-8 items-center">
-                    <button onClick={() => setDraftFilters({...draftFilters, driverAssigned: ''})} className={`flex-1 py-1 text-[11px] font-bold rounded ${draftFilters.driverAssigned === '' ? 'bg-white shadow-sm text-gray-900 border border-gray-100' : 'text-gray-500'}`}>All</button>
-                    <button onClick={() => setDraftFilters({...draftFilters, driverAssigned: 'assigned'})} className={`flex-1 py-1 text-[11px] font-bold rounded ${draftFilters.driverAssigned === 'assigned' ? 'bg-white shadow-sm text-gray-900 border border-gray-100' : 'text-gray-500'}`}>Assigned</button>
-                    <button onClick={() => setDraftFilters({...draftFilters, driverAssigned: 'unassigned'})} className={`flex-1 py-1 text-[11px] font-bold rounded ${draftFilters.driverAssigned === 'unassigned' ? 'bg-white shadow-sm text-gray-900 border border-gray-100' : 'text-gray-500'}`}>Unassigned</button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-500 mb-1">Date From</label>
-                  <input type="date" value={draftFilters.dateFrom} onChange={e => setDraftFilters({...draftFilters, dateFrom: e.target.value})} className="w-full h-8 border border-gray-200 rounded-md bg-gray-50 px-2 text-[10px] outline-none focus:border-yellow-400 font-medium" />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-500 mb-1">Date To</label>
-                  <input type="date" value={draftFilters.dateTo} onChange={e => setDraftFilters({...draftFilters, dateTo: e.target.value})} className="w-full h-8 border border-gray-200 rounded-md bg-gray-50 px-2 text-[10px] outline-none focus:border-yellow-400 font-medium" />
-                </div>
-              </div>
-
-              <div className="mt-3 flex items-center gap-2">
-                <button onClick={resetFilters} className="flex-1 py-1 bg-gray-100 text-gray-700 rounded text-[10px] font-bold hover:bg-gray-200 transition-colors">Clear Filters</button>
-                <button onClick={applyFilters} className="flex-1 py-1 bg-black text-white rounded text-[10px] font-bold hover:bg-gray-900 transition-colors shadow-sm">Apply Filters</button>
-              </div>
-            </div>
-          )}
+          <BookingFilterBar filters={activeFilters} onChange={setActiveFilters} serviceOptions={SERVICE_OPTIONS.live} />
 
           {/* Table Container */}
           <div className="overflow-x-auto min-h-[400px]">

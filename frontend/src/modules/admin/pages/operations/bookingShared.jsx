@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   X, MapPin, Navigation, Phone, User, Car, Clock, IndianRupee, CreditCard, Star, Ban, Package, ExternalLink,
 } from 'lucide-react';
 import { BACKEND_ORIGIN } from '../../../../shared/api/runtimeConfig';
+import { adminService } from '../../services/adminService';
 
 // ---------- formatting ----------
 export const formatDateTime = (value) => {
@@ -49,10 +50,21 @@ const who = (row, kind) => {
 };
 const unassigned = (n) => !n || n === '--' || n === 'Unassigned';
 
+const SERVICE_STYLES = {
+  city: 'bg-yellow-50 text-yellow-800 ring-yellow-200', airport: 'bg-sky-50 text-sky-700 ring-sky-200', outstation: 'bg-violet-50 text-violet-700 ring-violet-200',
+  pooling: 'bg-emerald-50 text-emerald-700 ring-emerald-200', parcel: 'bg-orange-50 text-orange-700 ring-orange-200', intercity: 'bg-rose-50 text-rose-700 ring-rose-200',
+};
+export const ServiceBadge = ({ row }) => {
+  const key = row.serviceKey || (row.parcel ? 'parcel' : 'city');
+  const label = row.serviceLabel || (key === 'parcel' ? 'Parcel delivery' : 'City ride');
+  return <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold ring-1 ring-inset ${SERVICE_STYLES[key] || 'bg-gray-50 text-gray-600 ring-gray-200'}`}>{label}</span>;
+};
+
 export const BookingCell = ({ row }) => (
   <div className="leading-tight">
     <p className="font-mono text-[12px] font-bold text-gray-900">{row.requestId || '-'}</p>
     <p className="text-[11px] font-medium text-gray-400">{formatDateTime(row.date)}</p>
+    <div className="mt-1"><ServiceBadge row={row} /></div>
   </div>
 );
 export const CustomerCell = ({ row }) => {
@@ -106,6 +118,89 @@ export const StatCards = ({ items }) => (
   </div>
 );
 
+
+// ---------- filters ----------
+export const EMPTY_BOOKING_FILTERS = { service: '', vehicle: '', payment: '', city: '', driver: '', dateFrom: '', dateTo: '' };
+
+export const SERVICE_OPTIONS = {
+  rides: [['', 'All bookings'], ['city', 'City ride'], ['airport', 'Airport transfer'], ['outstation', 'Outstation'], ['pooling', 'Car pooling']],
+  live: [['', 'All bookings'], ['city', 'City ride'], ['airport', 'Airport transfer'], ['outstation', 'Outstation'], ['pooling', 'Car pooling'], ['parcel', 'Parcel delivery']],
+  parcel: null,
+};
+
+const selectCls = 'h-8 w-full rounded-md border border-gray-200 bg-white px-2 text-[12px] font-semibold text-gray-700 outline-none focus:border-yellow-400';
+const Field = ({ label, children }) => (
+  <label className="block min-w-[120px] flex-1">
+    <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-gray-400">{label}</span>
+    {children}
+  </label>
+);
+
+export const BookingFilterBar = ({ filters, onChange, serviceOptions = SERVICE_OPTIONS.rides }) => {
+  const [cities, setCities] = useState([]);
+  useEffect(() => {
+    let alive = true;
+    adminService.getServiceLocations().then((res) => {
+      const d = res?.data?.data || res?.data || {};
+      const list = d.results || d.service_locations || (Array.isArray(d) ? d : []);
+      if (alive) setCities(list.map((c) => ({ id: c._id || c.id, name: c.service_location_name || c.name })).filter((c) => c.id));
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
+  const set = (k) => (e) => onChange({ ...filters, [k]: e.target.value });
+  const active = Object.values(filters).filter(Boolean).length;
+  const isPoolingOnly = filters.service === 'pooling';
+
+  return (
+    <div className="border-b border-gray-100 bg-gray-50/60 px-4 py-3">
+      <div className="flex flex-wrap items-end gap-3">
+        {serviceOptions ? (
+          <Field label="Booking type">
+            <select value={filters.service} onChange={set('service')} className={selectCls}>
+              {serviceOptions.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </Field>
+        ) : null}
+        <Field label="City">
+          <select value={filters.city} onChange={set('city')} disabled={isPoolingOnly} className={selectCls}>
+            <option value="">All cities</option>
+            {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </Field>
+        <Field label="Vehicle">
+          <select value={filters.vehicle} onChange={set('vehicle')} disabled={isPoolingOnly} className={selectCls}>
+            <option value="">All vehicles</option><option value="bike">Bike</option><option value="auto">Auto / E-rickshaw</option><option value="car">Car</option>
+          </select>
+        </Field>
+        <Field label="Payment">
+          <select value={filters.payment} onChange={set('payment')} className={selectCls}>
+            <option value="">All payments</option><option value="cash">Cash</option><option value="online">Online</option><option value="wallet">Wallet</option>
+          </select>
+        </Field>
+        <Field label="Driver">
+          <select value={filters.driver} onChange={set('driver')} disabled={isPoolingOnly} className={selectCls}>
+            <option value="">Any</option><option value="assigned">Assigned</option><option value="unassigned">Not assigned</option>
+          </select>
+        </Field>
+        <Field label="From"><input type="date" value={filters.dateFrom} onChange={set('dateFrom')} className={selectCls} /></Field>
+        <Field label="To"><input type="date" value={filters.dateTo} onChange={set('dateTo')} className={selectCls} /></Field>
+        <button type="button" onClick={() => onChange({ ...EMPTY_BOOKING_FILTERS })} disabled={!active}
+          className="h-8 rounded-md border border-gray-200 bg-white px-3 text-[12px] font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-40">
+          Reset{active ? ` (${active})` : ''}
+        </button>
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] font-semibold text-gray-500">
+        <span>Booking types:</span>
+        {['city', 'airport', 'outstation', 'pooling', 'parcel'].map((k) => (
+          <span key={k} className={`rounded px-1.5 py-0.5 text-[10px] font-bold ring-1 ring-inset ${SERVICE_STYLES[k]}`}>
+            {{ city: 'City ride', airport: 'Airport transfer', outstation: 'Outstation', pooling: 'Car pooling', parcel: 'Parcel delivery' }[k]}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // ---------- details drawer ----------
 const mapsLink = (from, to) => {
   const f = from?.coordinates, t = to?.coordinates;
@@ -139,6 +234,7 @@ export const BookingDetailsDrawer = ({ booking, onClose }) => {
   const user = who(b, 'user');
   const driver = who(b, 'driver');
   const isDelivery = Boolean(b.parcel);
+  const pool = b.pooling;
   const link = mapsLink(b.pickupLocation, b.dropLocation);
   const steps = [
     ['Requested', t.requestedAt], ['Driver accepted', t.acceptedAt], ['Driver arrived', t.arrivedAt],
@@ -152,7 +248,7 @@ export const BookingDetailsDrawer = ({ booking, onClose }) => {
       <div className="flex h-full w-full max-w-xl flex-col bg-gray-50 text-gray-900 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between gap-3 border-b border-gray-200 bg-white px-5 py-4">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{isDelivery ? 'Delivery booking' : 'Ride booking'}</p>
+            <div className="mb-1"><ServiceBadge row={b} /></div>
             <p className="font-mono text-lg font-black text-gray-900">{b.requestId}</p>
             <p className="text-xs font-medium text-gray-500">{formatDateTime(b.date)}</p>
           </div>
@@ -170,6 +266,7 @@ export const BookingDetailsDrawer = ({ booking, onClose }) => {
               <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-gray-100 pt-3 text-[12px] font-semibold text-gray-600">
                 {b.distanceKm ? <span className="flex items-center gap-1"><Navigation size={13} /> {b.distanceKm} km</span> : null}
                 {b.durationMin ? <span className="flex items-center gap-1"><Clock size={13} /> {b.durationMin} min</span> : null}
+                {b.airportName ? <span className="flex items-center gap-1 text-sky-700">Airport: {b.airportName}</span> : null}
                 {link ? <a href={link} target="_blank" rel="noreferrer" className="ml-auto flex items-center gap-1 text-blue-600 hover:underline">Open in Maps <ExternalLink size={12} /></a> : null}
               </div>
             </div>
@@ -190,6 +287,21 @@ export const BookingDetailsDrawer = ({ booking, onClose }) => {
               )}
             </Section>
           </div>
+
+          {pool ? (
+            <Section icon={Car} title="Car pooling seats">
+              <div className="grid grid-cols-2 gap-3">
+                <KV label="Route">{pool.routeName}</KV>
+                <KV label="Travel date">{formatDateTime(pool.travelDate).replace(/, \d{2}:\d{2}.*$/, '')}</KV>
+                <KV label="Departure">{[pool.scheduleLabel, pool.departureTime].filter(Boolean).join(' · ')}</KV>
+                <KV label="Arrival">{pool.arrivalTime}</KV>
+                <KV label="Seats booked">{pool.seatsBooked} ({(pool.selectedSeats || []).join(', ') || '--'})</KV>
+                <KV label="Fare per seat">{money(pool.farePerSeat)}</KV>
+                <KV label="Vehicle">{[pool.vehicleModel, pool.vehicleNumber].filter(Boolean).join(' · ')}</KV>
+                <KV label="Commission split">{`Driver ${pool.driverCommissionPercentage}% · Owner ${pool.ownerCommissionPercentage}% · Tax ${pool.serviceTaxPercentage}%`}</KV>
+              </div>
+            </Section>
+          ) : null}
 
           <Section icon={IndianRupee} title="Fare breakdown">
             <Line label="Base fare" value={f.baseFare || f.totalFare - (f.waitingCharge + f.tollCharges + f.airportFee + f.platformFee) + f.promoDiscount} />

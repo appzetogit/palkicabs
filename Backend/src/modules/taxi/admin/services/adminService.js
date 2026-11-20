@@ -30,6 +30,8 @@ import { createDefaultThirdPartySettings } from '../data/defaultThirdPartySettin
 import { RentalPackageType } from '../models/RentalPackageType.js';
 import { RentalBookingRequest } from '../models/RentalBookingRequest.js';
 import { PoolingRoute } from '../models/PoolingRoute.js';
+import { PoolingBooking } from '../models/PoolingBooking.js';
+import { PoolingVehicle } from '../models/PoolingVehicle.js';
 import { RentalVehicleType } from '../models/RentalVehicleType.js';
 import { RentalQuoteRequest } from '../models/RentalQuoteRequest.js';
 import { SetPrice } from '../models/SetPrice.js';
@@ -6619,11 +6621,24 @@ const tripPaymentFields = (ride) => {
   };
 };
 
+const rideServiceOf = (ride) => {
+  if (ride.serviceType === 'parcel') return ['parcel', 'Parcel delivery'];
+  if (ride.serviceType === 'intercity') return ['intercity', 'Intercity'];
+  const category = String(ride.trip_category?.category || '').toLowerCase();
+  if (category === 'airport') return ['airport', 'Airport transfer'];
+  if (category === 'outstation') return ['outstation', 'Outstation'];
+  return ['city', 'City ride'];
+};
+
 const rideDetailFields = (ride) => {
   const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+  const [serviceKey, serviceLabel] = rideServiceOf(ride);
   const meters = ride.route?.distanceMeters ?? ride.estimatedDistanceMeters ?? null;
   return {
     serviceType: ride.serviceType || 'ride',
+    serviceKey,
+    serviceLabel,
+    airportName: ride.trip_category?.airport_name || '',
     tripCategory: ride.trip_category?.category || '',
     vehicleName: ride.vehicleTypeId?.name || '',
     vehicleImage: ride.vehicleTypeId?.image || '',
@@ -7192,6 +7207,125 @@ const buildAdminRideSearchClauses = async (
   return clauses;
 };
 
+const parseDay = (value, endOfDay = false) => {
+  const text = String(value || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return null;
+  return new Date(`${text}T${endOfDay ? '23:59:59.999' : '00:00:00.000'}+05:30`);
+};
+
+// Query params the admin booking pages send: service, vehicle, payment, city, driver, dateFrom, dateTo.
+const buildAdminRideFilterClauses = (query = {}) => {
+  const clauses = [];
+  const service = String(query.service || '').toLowerCase();
+  if (service === 'city') clauses.push({ serviceType: 'ride', 'trip_category.category': { $nin: ['airport', 'outstation'] } });
+  if (service === 'airport') clauses.push({ 'trip_category.category': 'airport' });
+  if (service === 'outstation') clauses.push({ 'trip_category.category': 'outstation' });
+  if (service === 'parcel') clauses.push({ serviceType: 'parcel' });
+  if (service === 'intercity') clauses.push({ serviceType: 'intercity' });
+
+  const vehicle = String(query.vehicle || '').toLowerCase();
+  if (['bike', 'auto', 'car'].includes(vehicle)) clauses.push({ vehicleIconType: vehicle });
+
+  const payment = String(query.payment || '').toLowerCase();
+  if (['cash', 'online', 'wallet'].includes(payment)) clauses.push({ paymentMethod: payment });
+
+  if (mongoose.isValidObjectId(query.city)) clauses.push({ service_location_id: new mongoose.Types.ObjectId(query.city) });
+
+  const driver = String(query.driver || '').toLowerCase();
+  if (driver === 'assigned') clauses.push({ driverId: { $ne: null } });
+  if (driver === 'unassigned') clauses.push({ driverId: null });
+
+  const from = parseDay(query.dateFrom);
+  const to = parseDay(query.dateTo, true);
+  if (from || to) clauses.push({ createdAt: { ...(from ? { $gte: from } : {}), ...(to ? { $lte: to } : {}) } });
+  return clauses;
+};
+
+const POOLING_STATUS_BY_TAB = (tab) => {
+  const t = String(tab || 'all').toLowerCase();
+  const istDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+  const startOfToday = new Date(`${istDay}T00:00:00+05:30`);
+  const endOfToday = new Date(`${istDay}T23:59:59.999+05:30`);
+  if (t === 'completed') return { bookingStatus: 'completed' };
+  if (t === 'cancelled') return { bookingStatus: { $in: ['cancelled', 'no_show'] } };
+  if (t === 'upcoming') return { bookingStatus: 'confirmed', travelDate: { $gt: endOfToday } };
+  if (['ongoing', 'on trip', 'on_trip', 'accepted'].includes(t)) return { bookingStatus: 'confirmed', travelDate: { $gte: startOfToday, $lte: endOfToday } };
+  return {};
+};
+
+const toAdminPoolingRow = (b) => {
+  const route = b.route || {};
+  const vehicle = b.vehicle || {};
+  const user = b.user || {};
+  const schedule = (route.schedules || []).find((x) => x.id === b.scheduleId) || {};
+  const status = String(b.bookingStatus || '').toLowerCase();
+  const istDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+  const travelDay = b.travelDate ? new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date(b.travelDate)) : '';
+  let tripStatus = 'UPCOMING';
+  if (status === 'completed') tripStatus = 'COMPLETED';
+  else if (status === 'cancelled' || status === 'no_show') tripStatus = 'CANCELLED';
+  else if (travelDay && travelDay <= istDay) tripStatus = 'ONGOING';
+  const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+  const method = String(b.payment?.provider || '').toLowerCase() === 'wallet' ? 'WALLET' : 'ONLINE';
+  return {
+    id: String(b._id),
+    requestId: b.bookingId,
+    date: b.createdAt,
+    userName: user.name || 'Unknown User',
+    driverName: vehicle.driverName || 'Unassigned',
+    transportType: 'pooling',
+    tripStatus,
+    rideStatus: b.bookingStatus,
+    liveStatus: b.bookingStatus,
+    paymentOption: method,
+    paymentDetail: b.payment?.provider ? `Paid via ${b.payment.provider}` : '',
+    paymentReference: b.payment?.paymentId || '',
+    paymentStatus: b.paymentStatus || 'pending',
+    serviceType: 'pooling',
+    serviceKey: 'pooling',
+    serviceLabel: 'Car pooling',
+    vehicleName: vehicle.name || '',
+    vehicleImage: '',
+    distanceKm: null,
+    durationMin: null,
+    fare: num(b.fare),
+    fareBreakdown: {
+      totalFare: num(b.fare), baseFare: num(b.baseFare), waitingCharge: 0, waitingMinutes: 0, tollCharges: 0, airportFee: 0, surgeMultiplier: null,
+      platformFee: num(b.serviceTaxAmount), promoCode: '', promoDiscount: 0,
+      commission: num(b.driverCommissionAmount) + num(b.ownerCommissionAmount), driverEarnings: Math.max(0, num(b.baseFare) - num(b.driverCommissionAmount) - num(b.ownerCommissionAmount)),
+    },
+    timeline: { requestedAt: b.createdAt, acceptedAt: null, arrivedAt: null, startedAt: null, completedAt: status === 'completed' ? b.updatedAt : null, cancelledAt: status === 'cancelled' || status === 'no_show' ? b.updatedAt : null },
+    cancellation: status === 'cancelled' || status === 'no_show' ? { by: status === 'no_show' ? 'rider (no show)' : '', reason: '' } : null,
+    feedback: null,
+    pickupLabel: b.pickupLabel || route.originLabel || '',
+    dropLabel: b.dropLabel || route.destinationLabel || '',
+    pickupAddress: b.pickupLabel || route.originLabel || '',
+    dropAddress: b.dropLabel || route.destinationLabel || '',
+    scheduledAt: b.travelDate || null,
+    bookingSource: 'app',
+    pickupLocation: null,
+    dropLocation: null,
+    user: user._id ? { id: String(user._id), name: user.name || '', phone: user.phone || '' } : null,
+    driver: vehicle.driverName ? { id: '', name: vehicle.driverName, phone: vehicle.driverPhone || '', vehicleType: vehicle.vehicleType || '', vehicleNumber: vehicle.vehicleNumber || '' } : null,
+    pooling: {
+      routeName: route.routeName || '',
+      routeCode: route.routeCode || '',
+      seatsBooked: num(b.seatsBooked),
+      selectedSeats: b.selectedSeats || [],
+      travelDate: b.travelDate || null,
+      departureTime: schedule.departureTime || '',
+      arrivalTime: schedule.arrivalTime || '',
+      scheduleLabel: schedule.label || '',
+      farePerSeat: num(route.farePerSeat),
+      vehicleModel: vehicle.vehicleModel || '',
+      vehicleNumber: vehicle.vehicleNumber || '',
+      driverCommissionPercentage: num(b.driverCommissionPercentage),
+      ownerCommissionPercentage: num(b.ownerCommissionPercentage),
+      serviceTaxPercentage: num(b.serviceTaxPercentage),
+    },
+  };
+};
+
 const listAdminRides = async ({
   query = {},
   baseFilter = {},
@@ -7199,55 +7333,83 @@ const listAdminRides = async ({
   serializer,
   includeParcel = false,
   includeIntercity = false,
+  includePooling = false,
 }) => {
   const page = Math.max(Number(query.page || 1), 1);
   const limit = clampAdminRideListPageSize(query.limit, 10);
   const tab = String(query.tab || 'all').toLowerCase();
   const search = String(query.search || '').trim();
+  const service = String(query.service || '').toLowerCase();
 
+  // Pooling bookings live in their own collection; they join the list for "all services" and "car pooling".
+  const wantPooling = includePooling && (service === '' || service === 'all' || service === 'pooling');
+  const poolingOnly = includePooling && service === 'pooling';
+
+  const searchClauses = await buildAdminRideSearchClauses(search, { includeParcel, includeIntercity });
+  const and = [buildRideStatusFilter(tab, variant), ...buildAdminRideFilterClauses(query)];
+  if (searchClauses.length > 0) and.push({ $or: searchClauses });
   const mongoFilter = {
     ...baseFilter,
-    ...buildRideStatusFilter(tab, variant),
     // Trips an admin deleted stay in the database, out of these lists.
     adminDeletedAt: null,
+    ...(and.filter((c) => Object.keys(c).length).length ? { $and: and.filter((c) => Object.keys(c).length) } : {}),
   };
 
-  const searchClauses = await buildAdminRideSearchClauses(search, {
-    includeParcel,
-    includeIntercity,
-  });
+  const fetchRides = (skip, take) => {
+    let rideQuery = Ride.find(mongoFilter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(take)
+      .populate('userId', 'name phone')
+      .populate('driverId', 'name phone vehicleType vehicleNumber')
+      .populate('vehicleTypeId', 'name image');
+    if (includeParcel) rideQuery = rideQuery.populate('deliveryId');
+    return rideQuery.lean();
+  };
 
-  if (searchClauses.length > 0) {
-    mongoFilter.$or = searchClauses;
+  // Pooling: payment/driver/city filters only apply to rides, but the status tab, date range and search do.
+  const poolingFilter = async () => {
+    const f = { ...POOLING_STATUS_BY_TAB(tab) };
+    if (variant === 'ongoing_rides' && !f.bookingStatus) f.bookingStatus = 'confirmed'; // only live/upcoming pool seats
+    const from = parseDay(query.dateFrom); const to = parseDay(query.dateTo, true);
+    if (from || to) f.createdAt = { ...(from ? { $gte: from } : {}), ...(to ? { $lte: to } : {}) };
+    if (String(query.payment || '').toLowerCase() === 'cash') f._id = null;
+    if (search) {
+      const rx = new RegExp(escapeRegex(search), 'i');
+      const users = await User.find({ $or: [{ name: rx }, { phone: rx }] }).select('_id').limit(100).lean();
+      f.$or = [{ bookingId: rx }, { pickupLabel: rx }, { dropLabel: rx }, { user: { $in: users.map((u) => u._id) } }];
+    }
+    return f;
+  };
+  const fetchPooling = async (skip, take) => {
+    const f = await poolingFilter();
+    const [rows, total] = await Promise.all([
+      PoolingBooking.find(f).sort({ createdAt: -1 }).skip(skip).limit(take).populate('user', 'name phone').populate('route').populate('vehicle').lean(),
+      PoolingBooking.countDocuments(f),
+    ]);
+    return { rows: rows.map(toAdminPoolingRow), total };
+  };
+
+  if (poolingOnly) {
+    const { rows, total } = await fetchPooling((page - 1) * limit, limit);
+    return buildDatabasePaginator(rows, page, limit, total);
   }
 
-  const [total, rides] = await Promise.all([
-    Ride.countDocuments(mongoFilter),
-    (() => {
-      let rideQuery = Ride.find(mongoFilter)
-        .sort({ createdAt: -1 })
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .populate('userId', 'name phone')
-        .populate('driverId', 'name phone vehicleType vehicleNumber')
-        .populate('vehicleTypeId', 'name image');
+  if (!wantPooling) {
+    const [total, rides] = await Promise.all([Ride.countDocuments(mongoFilter), fetchRides((page - 1) * limit, limit)]);
+    return buildDatabasePaginator(rides.map(serializer), page, limit, total);
+  }
 
-      if (includeParcel) {
-        rideQuery = rideQuery.populate('deliveryId');
-      }
-
-      return rideQuery.lean();
-    })(),
-  ]);
-
-  return buildDatabasePaginator(rides.map(serializer), page, limit, total);
+  // Mixed list: take the newest `page * limit` of each source, merge by date, then cut the requested page.
+  const take = page * limit;
+  const [rideTotal, rides, pooling] = await Promise.all([Ride.countDocuments(mongoFilter), fetchRides(0, take), fetchPooling(0, take)]);
+  const merged = [...rides.map(serializer), ...pooling.rows]
+    .sort((x, y) => new Date(y.date).getTime() - new Date(x.date).getTime())
+    .slice((page - 1) * limit, page * limit);
+  return buildDatabasePaginator(merged, page, limit, rideTotal + pooling.total);
 };
 
-
-
-
-
-const getRideListStats = async (baseFilter = {}) => {
+const getRideListStats = async (baseFilter = {}, withPooling = false) => {
   const base = { ...baseFilter, adminDeletedAt: null };
   const count = (filter) => Ride.countDocuments({ ...base, ...filter });
   const istDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
@@ -7260,23 +7422,36 @@ const getRideListStats = async (baseFilter = {}) => {
     count({ createdAt: { $gte: startOfToday } }),
     Ride.aggregate([{ $match: { ...base, status: RIDE_STATUS.COMPLETED } }, { $group: { _id: null, sum: { $sum: '$fare' } } }]),
   ]);
-  return { total, completed, cancelled, active, today, revenue: Math.round(revenue[0]?.sum || 0) };
+  const stats = { total, completed, cancelled, active, today, revenue: Math.round(revenue[0]?.sum || 0) };
+  if (!withPooling) return stats;
+  const [pt, pc, px, pa, pd, pr] = await Promise.all([
+    PoolingBooking.countDocuments(),
+    PoolingBooking.countDocuments({ bookingStatus: 'completed' }),
+    PoolingBooking.countDocuments({ bookingStatus: { $in: ['cancelled', 'no_show'] } }),
+    PoolingBooking.countDocuments({ bookingStatus: 'confirmed' }),
+    PoolingBooking.countDocuments({ createdAt: { $gte: startOfToday } }),
+    PoolingBooking.aggregate([{ $match: { bookingStatus: 'completed' } }, { $group: { _id: null, sum: { $sum: '$fare' } } }]),
+  ]);
+  return {
+    total: stats.total + pt, completed: stats.completed + pc, cancelled: stats.cancelled + px, active: stats.active + pa,
+    today: stats.today + pd, revenue: stats.revenue + Math.round(pr[0]?.sum || 0),
+  };
 };
 
 export const listOngoingRides = async (query = {}) => {
   const baseFilter = { status: { $in: [RIDE_STATUS.SEARCHING, RIDE_STATUS.ACCEPTED, RIDE_STATUS.ONGOING] } };
   const [list, stats] = await Promise.all([
-    listAdminRides({ query, baseFilter, variant: 'ongoing_rides', serializer: toAdminRideRow }),
-    getRideListStats(baseFilter),
+    listAdminRides({ query, baseFilter, variant: 'ongoing_rides', serializer: toAdminRideRow, includePooling: true }),
+    getRideListStats(baseFilter, true),
   ]);
   return { ...list, stats };
 };
 
 export const listRideRequests = async (query = {}) => {
-  const baseFilter = { serviceType: { $nin: ['parcel', 'intercity'] } };
+  const baseFilter = ['parcel', 'intercity'].includes(String(query.service || '').toLowerCase()) ? {} : { serviceType: { $nin: ['parcel', 'intercity'] } };
   const [list, stats] = await Promise.all([
-    listAdminRides({ query, baseFilter, variant: 'ride_requests', serializer: toAdminRideRow }),
-    getRideListStats(baseFilter),
+    listAdminRides({ query, baseFilter, variant: 'ride_requests', serializer: toAdminRideRow, includePooling: true }),
+    getRideListStats(baseFilter, true),
   ]);
   return { ...list, stats };
 };

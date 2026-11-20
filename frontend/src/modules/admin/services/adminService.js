@@ -1,5 +1,12 @@
 import api from '../../../shared/api/axiosInstance';
 
+// Builds ?page=&limit=&tab=&search=&service=... and drops empty values.
+const bookingQuery = ({ page = 1, limit = 10, tab = 'all', search = '', ...filters } = {}) =>
+  Object.entries({ page, limit, tab, search, ...filters })
+    .filter(([, v]) => v !== '' && v !== null && v !== undefined)
+    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+    .join('&');
+
 export const adminService = {
   /**
    * Admin Authentication
@@ -205,17 +212,12 @@ export const adminService = {
   getSafetyAlerts: ({ page = 1, limit = 25, status = 'active' } = {}) =>
     api.get(`/admin/safety/alerts?page=${page}&limit=${limit}&status=${encodeURIComponent(status)}`),
   resolveSafetyAlert: (id, note = '') => api.patch(`/admin/safety/alerts/${id}/resolve`, { note }),
-  getOngoingRides: ({ page = 1, limit = 10, tab = 'all', search = '' } = {}) =>
-    api.get(`/admin/ongoing-rides?page=${page}&limit=${limit}&tab=${encodeURIComponent(tab)}&search=${encodeURIComponent(search)}`),
+  getOngoingRides: (params = {}) => api.get(`/admin/ongoing-rides?${bookingQuery(params)}`),
   getOwnerDashboard: () => api.get('/admin/owner-management/dashboard'),
-  getRideRequests: ({ page = 1, limit = 10, tab = 'all', search = '' } = {}) =>
-    api.get(`/admin/ride-requests?page=${page}&limit=${limit}&tab=${encodeURIComponent(tab)}&search=${encodeURIComponent(search)}`),
-  listRideRequests: ({ page = 1, limit = 10, tab = 'all', search = '' } = {}) =>
-    api.get(`/admin/ride-requests?page=${page}&limit=${limit}&tab=${encodeURIComponent(tab)}&search=${encodeURIComponent(search)}`),
-  getDeliveries: ({ page = 1, limit = 10, tab = 'all', search = '' } = {}) =>
-    api.get(`/admin/deliveries?page=${page}&limit=${limit}&tab=${encodeURIComponent(tab)}&search=${encodeURIComponent(search)}`),
-  getTrips: ({ page = 1, limit = 10, tab = 'all', search = '' } = {}) =>
-    api.get(`/admin/trips?page=${page}&limit=${limit}&tab=${encodeURIComponent(tab)}&search=${encodeURIComponent(search)}`),
+  getRideRequests: (params = {}) => api.get(`/admin/ride-requests?${bookingQuery(params)}`),
+  listRideRequests: (params = {}) => api.get(`/admin/ride-requests?${bookingQuery(params)}`),
+  getDeliveries: (params = {}) => api.get(`/admin/deliveries?${bookingQuery(params)}`),
+  getTrips: (params = {}) => api.get(`/admin/trips?${bookingQuery(params)}`),
   deleteOngoingRide: (id) => api.delete(`/admin/ongoing-rides/${id}`),
 
   /**
