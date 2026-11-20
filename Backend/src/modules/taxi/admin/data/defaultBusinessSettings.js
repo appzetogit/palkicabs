@@ -6,7 +6,7 @@ export const createDefaultBusinessSettings = () => ({
     contact_phone_2: '0000000000',
     contact_booking_number: '9999999999',
     footer_1: '2026 © PALKI. Bhaarat Apna Private Limited.',
-    footer_2: 'Design & Develop by Appzeto',
+    footer_2: 'PALKI',
     default_lat: '22.7196',
     default_lng: '75.8577',
     logo: '',

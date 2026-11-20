@@ -5,7 +5,7 @@ import { adminService } from '../../services/adminService';
 import { uploadService } from '../../../../shared/services/uploadService';
 
 /**
- * Editor for the public marketing site (palkicabs.buytogetherindia.com).
+ * Editor for the public marketing site (palkicabs.com).
  *
  * Mirrors the backend's section whitelist in landingContentService.js — adding a
  * section means updating the model, that whitelist, defaultLandingContent.js and
@@ -541,7 +541,7 @@ export default function LandingContent() {
         <div>
           <h1 className="text-xl font-bold text-gray-900">Website Content</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Controls the public site at palkicabs.buytogetherindia.com. Changes appear within about a minute.
+            Controls the public site at palkicabs.com. Changes appear within about a minute.
           </p>
         </div>
         <button
