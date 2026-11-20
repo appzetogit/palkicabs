@@ -64,6 +64,52 @@ const formatDate = (date) =>
     timeZone: 'Asia/Kolkata',
   });
 
+const formatDateTime = (date) =>
+  date
+    ? new Date(date).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' })
+    : '-';
+
+// "0000000000" is the admin panel's placeholder, not a number worth printing.
+const realPhone = (value) => {
+  const text = String(value || '').trim();
+  return /[1-9]/.test(text.replace(/\D/g, '')) ? text : '';
+};
+
+const companyDetails = (general, contact) => ({
+  name: String(general.app_name || 'PALKI').trim(),
+  legalName: String(general.company_name || contact.legalName || 'Bhaarat Apna Private Limited').trim(),
+  tagline: String(contact.tagline || 'Reliable rides, simple journeys').trim(),
+  address: String(contact.address || general.address || '').trim(),
+  phone: realPhone(contact.whatsappDisplay) || realPhone(general.contact_phone_1) || realPhone(general.contact_booking_number),
+  email: String(contact.email || general.contact_email || '').trim(),
+  website: String(general.website || 'palkicabs.com').trim(),
+  gstin: String(general.gst_number || general.gstin || '').trim(),
+  city: String(contact.city || '').trim(),
+});
+
+/** Company block shared by the invoice and the receipt. Returns the next y. */
+const drawCompanyBlock = (doc, company, left, width, y) => {
+  doc.font(FONTS.bold).fontSize(13).fillColor(INK).text(company.name, left, y);
+  doc.font(FONTS.regular).fontSize(9.5).fillColor(ACCENT).text(company.tagline, left, y + 17);
+  y += 42;
+  const colWidth = (width - 24) / 2;
+  const cells = [
+    ['Registered Entity', company.legalName], ['Office Address', company.address], ['Phone', company.phone],
+    ['Email', company.email], ['Website', company.website], ['GSTIN', company.gstin],
+  ].filter(([, value]) => value);
+  for (let i = 0; i < cells.length; i += 2) {
+    const [l1, v1] = cells[i]; const second = cells[i + 1];
+    const rowHeight = Math.max(
+      doc.font(FONTS.regular).fontSize(10.5).heightOfString(v1, { width: colWidth }),
+      second ? doc.font(FONTS.regular).fontSize(10.5).heightOfString(second[1], { width: colWidth }) : 0,
+    ) + 13;
+    drawLabelledColumn(doc, left, y, colWidth, l1, v1);
+    if (second) drawLabelledColumn(doc, left + colWidth + 24, y, colWidth, second[0], second[1]);
+    y += rowHeight + 12;
+  }
+  return y + 4;
+};
+
 /** The business's own details and currency, from the admin panel. */
 const loadCompany = async () => {
   const [settingsDoc, landing] = await Promise.all([
@@ -76,14 +122,7 @@ const loadCompany = async () => {
   const rawSymbol = String(customization.currency_symbol || '₹').trim() || '₹';
   return {
     symbol: FONTS.unicode ? rawSymbol : 'Rs. ',
-    company: {
-      name: String(general.app_name || 'PALKI').trim(),
-      tagline: String(contact.tagline || 'Reliable rides, simple journeys').trim(),
-      address: String(contact.address || '').trim(),
-      phone: String(contact.whatsappDisplay || general.contact_phone_1 || '').trim(),
-      email: String(contact.email || '').trim(),
-      city: String(contact.city || '').trim(),
-    },
+    company: companyDetails(general, contact),
   };
 };
 
@@ -91,7 +130,8 @@ const loadCompany = async () => {
 export const buildInvoiceModel = async ({ rideId }) => {
   const ride = await Ride.findById(rideId)
     .populate('userId', 'name email phone')
-    .populate('driverId', 'name phone vehicleNumber')
+    .populate('driverId', 'name phone vehicleNumber vehicleType vehicleModel')
+    .populate('vehicleTypeId', 'name')
     .lean();
 
   if (!ride) {
@@ -111,38 +151,54 @@ export const buildInvoiceModel = async ({ rideId }) => {
   // Fall back to an ASCII marker when we have no Unicode font to draw it with.
   const currencySymbol = FONTS.unicode ? rawSymbol : 'Rs. ';
 
-  const fare = Number(ride.fare || 0);
+  const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+  const fare = num(ride.fare);
   // Outstation tolls are inside the fare; the invoice lists them on their own.
-  const tolls = Math.min(Math.max(0, Number(ride.tollCharges?.total) || 0), fare);
+  const tolls = Math.min(Math.max(0, num(ride.tollCharges?.total)), fare);
+  const waiting = Math.max(0, num(ride.waitingCharge));
+  const airportFee = Math.max(0, num(ride.trip_category?.airport_fee));
+  const platformFee = Math.max(0, num(ride.pricingSnapshot?.rider_platform_fee));
+  const discount = Math.max(0, num(ride.promo?.discount_amount));
+  // Whatever is left of the total once the listed extras are taken out is the trip fare itself.
+  const tripFare = Math.max(0, Math.round((fare - tolls - waiting - airportFee - platformFee + discount) * 100) / 100);
+  const meters = ride.route?.distanceMeters ?? ride.estimatedDistanceMeters ?? null;
+  const category = String(ride.trip_category?.category || '').toLowerCase();
+  const service = ride.serviceType === 'parcel' ? 'Parcel delivery' : ride.serviceType === 'intercity' ? 'Intercity'
+    : category === 'airport' ? 'Airport transfer' : category === 'outstation' ? 'Outstation' : 'City ride';
+  const paid = describeRidePayment(ride);
 
   return {
     invoiceDate: formatDate(ride.completedAt || ride.updatedAt),
-    company: {
-      name: String(general.app_name || 'PALKI').trim(),
-      tagline: String(contact.tagline || 'Reliable rides, simple journeys').trim(),
-      address: String(contact.address || '').trim(),
-      phone: String(contact.whatsappDisplay || general.contact_phone_1 || '').trim(),
-      email: String(contact.email || '').trim(),
-      city: String(contact.city || '').trim(),
-    },
+    company: companyDetails(general, contact),
     trip: {
+      bookingId: `${ride.serviceType === 'parcel' ? 'DEL' : 'REQ'}_${String(ride._id).slice(-12).toUpperCase()}`,
+      service,
       customerName: String(ride.userId?.name || 'Customer').trim(),
+      customerPhone: String(ride.userId?.phone || '').trim(),
       customerEmail: String(ride.userId?.email || '').trim(),
       driverName: String(ride.driverId?.name || '-').trim(),
+      driverPhone: String(ride.driverId?.phone || '').trim(),
       vehicleNumber: String(ride.driverId?.vehicleNumber || '-').trim(),
+      vehicle: String(ride.vehicleTypeId?.name || ride.driverId?.vehicleModel || ride.driverId?.vehicleType || '').trim(),
       pickup: String(ride.pickupAddress || '-').trim(),
       drop: String(ride.dropAddress || '-').trim(),
+      requestedAt: formatDateTime(ride.createdAt),
+      startedAt: ride.startedAt ? formatDateTime(ride.startedAt) : '',
+      completedAt: ride.completedAt ? formatDateTime(ride.completedAt) : '',
+      distance: meters ? `${(num(meters) / 1000).toFixed(1)} km` : '',
+      duration: ride.route?.durationMinutes ?? ride.estimatedDurationMinutes ? `${ride.route?.durationMinutes ?? ride.estimatedDurationMinutes} min` : '',
       paymentMethod: String(ride.paymentMethod || 'cash').trim(),
     },
     // How it was actually paid - a cash booking can be paid online at the end.
-    payment: (() => {
-      const paid = describeRidePayment(ride);
-      return { detail: paid.detail, reference: paid.reference };
-    })(),
+    payment: { detail: paid.detail, reference: paid.reference, status: paid.status, method: paid.method },
     invoiceNumber: invoiceNumber('ride', ride._id),
     fare: {
       symbol: currencySymbol,
-      tripFare: Math.round((fare - tolls) * 100) / 100,
+      tripFare,
+      waiting: waiting > 0 ? { label: `Waiting charge${num(ride.waitingMinutes) ? ` (${num(ride.waitingMinutes)} min)` : ''}`, amount: waiting } : null,
+      airportFee: airportFee > 0 ? { label: `Airport fee${ride.trip_category?.airport_name ? ` - ${ride.trip_category.airport_name}` : ''}`, amount: airportFee } : null,
+      platformFee: platformFee > 0 ? { label: 'Platform fee', amount: platformFee } : null,
+      discount: discount > 0 ? { label: `Promo discount${ride.promo?.code ? ` (${ride.promo.code})` : ''}`, amount: discount } : null,
       tolls: tolls > 0
         ? (ride.tollCharges?.items || [])
           .filter((item) => Number(item.amount) > 0)
@@ -208,24 +264,7 @@ export const renderInvoicePdf = (model) =>
 
     // --- company ------------------------------------------------------------
     y += 18;
-    doc.font(FONTS.bold).fontSize(13).fillColor(INK).text(model.company.name, left, y);
-    doc
-      .font(FONTS.regular)
-      .fontSize(9.5)
-      .fillColor(ACCENT)
-      .text(model.company.tagline, left, y + 17);
-
-    y += 42;
-    const colWidth = (width - 24) / 2;
-
-    if (model.company.address) {
-      drawLabelledColumn(doc, left, y, colWidth, 'Office Address', model.company.address);
-    }
-    if (model.company.phone) {
-      drawLabelledColumn(doc, left + colWidth + 24, y, colWidth, 'Phone', model.company.phone);
-    }
-
-    y += 52;
+    y = drawCompanyBlock(doc, model.company, left, width, y);
 
     // --- trip details -------------------------------------------------------
     const sectionHeading = (text) => {
@@ -242,11 +281,29 @@ export const renderInvoicePdf = (model) =>
     sectionHeading('Trip Details');
 
     const third = (width - 32) / 3;
-    drawLabelledColumn(doc, left, y, third, 'Customer Name', model.trip.customerName);
-    drawLabelledColumn(doc, left + third + 16, y, third, 'Driver Name', model.trip.driverName);
-    drawLabelledColumn(doc, left + (third + 16) * 2, y, third, 'Vehicle Number', model.trip.vehicleNumber);
-
-    y += 46;
+    const col = (i) => left + (third + 16) * i;
+    const detailRow = (cells) => {
+      let rowHeight = 0;
+      cells.forEach(([label, value], i) => {
+        drawLabelledColumn(doc, col(i), y, third, label, value);
+        rowHeight = Math.max(rowHeight, doc.font(FONTS.regular).fontSize(10.5).heightOfString(value || '-', { width: third }));
+      });
+      y += rowHeight + 13 + 12;
+    };
+    detailRow([
+      ['Customer', [model.trip.customerName, model.trip.customerPhone].filter(Boolean).join('\n')],
+      ['Driver', [model.trip.driverName, model.trip.driverPhone].filter(Boolean).join('\n')],
+      ['Vehicle', [model.trip.vehicle, model.trip.vehicleNumber].filter((v) => v && v !== '-').join('\n') || '-'],
+    ]);
+    detailRow([
+      ['Booking ID', model.trip.bookingId], ['Service', model.trip.service], ['Requested', model.trip.requestedAt],
+    ]);
+    const meta = [
+      model.trip.startedAt ? ['Trip started', model.trip.startedAt] : null,
+      model.trip.completedAt ? ['Trip completed', model.trip.completedAt] : null,
+      model.trip.distance || model.trip.duration ? ['Distance / time', [model.trip.distance, model.trip.duration].filter(Boolean).join('  ·  ')] : null,
+    ].filter(Boolean);
+    if (meta.length) detailRow(meta);
 
     // --- journey ------------------------------------------------------------
     sectionHeading('Journey');
@@ -287,20 +344,24 @@ export const renderInvoicePdf = (model) =>
     doc.moveTo(left, y).lineTo(right, y).lineWidth(0.75).strokeColor(RULE).stroke();
     y += 12;
 
-    const row = (label, amount, bold = false) => {
+    const row = (label, amount, bold = false, minus = false) => {
       doc
         .font(bold ? FONTS.bold : FONTS.regular)
         .fontSize(10.5)
-        .fillColor(INK)
+        .fillColor(minus ? '#B42318' : INK)
         .text(label, left, y)
-        .text(money(amount, model.fare.symbol), amountX, y, { width: 130, align: 'right' });
+        .text(`${minus ? '- ' : ''}${money(amount, model.fare.symbol)}`, amountX, y, { width: 130, align: 'right' });
       y += 22;
     };
 
     row('Trip Fare', model.fare.tripFare);
+    if (model.fare.waiting) row(model.fare.waiting.label, model.fare.waiting.amount);
+    if (model.fare.airportFee) row(model.fare.airportFee.label, model.fare.airportFee.amount);
     for (const toll of model.fare.tolls || []) row(toll.label, toll.amount);
+    if (model.fare.platformFee) row(model.fare.platformFee.label, model.fare.platformFee.amount);
+    if (model.fare.discount) row(model.fare.discount.label, model.fare.discount.amount, false, true);
     doc.moveTo(left, y - 6).lineTo(right, y - 6).lineWidth(0.75).strokeColor(RULE).stroke();
-    row('Total Amount', model.fare.total, true);
+    row('Total Amount (incl. applicable taxes)', model.fare.total, true);
 
     // --- total banner -------------------------------------------------------
     y += 8;
@@ -321,11 +382,12 @@ export const renderInvoicePdf = (model) =>
 
     y += 58;
     if (model.payment?.detail) {
+      const status = model.payment.status ? `  ·  ${String(model.payment.status).toUpperCase()}` : '';
       doc
         .font(FONTS.regular)
         .fontSize(9.5)
         .fillColor(MUTED)
-        .text(`Payment: ${model.payment.detail}${model.payment.reference ? `  ·  Ref. ${model.payment.reference}` : ''}`, left, y, { width });
+        .text(`Payment: ${model.payment.detail}${status}${model.payment.reference ? `  ·  Ref. ${model.payment.reference}` : ''}`, left, y, { width });
     }
     y += 16;
 
@@ -452,13 +514,8 @@ export const renderPaymentReceiptPdf = (payment, { company, symbol }) =>
     doc.moveTo(left, y).lineTo(right, y).lineWidth(2).strokeColor(INK).stroke();
 
     y += 18;
-    doc.font(FONTS.bold).fontSize(13).fillColor(INK).text(company.name, left, y);
-    doc.font(FONTS.regular).fontSize(9.5).fillColor(ACCENT).text(company.tagline, left, y + 17);
-    y += 42;
+    y = drawCompanyBlock(doc, company, left, width, y);
     const colWidth = (width - 24) / 2;
-    if (company.address) drawLabelledColumn(doc, left, y, colWidth, 'Office Address', company.address);
-    if (company.phone) drawLabelledColumn(doc, left + colWidth + 24, y, colWidth, 'Phone', company.phone);
-    y += 52;
 
     const sectionHeading = (text) => {
       doc.font(FONTS.bold).fontSize(8.5).fillColor(MUTED).text(text.toUpperCase(), left, y, { characterSpacing: 1.2 });
@@ -471,6 +528,14 @@ export const renderPaymentReceiptPdf = (payment, { company, symbol }) =>
     drawLabelledColumn(doc, left, y, colWidth, payment.payer.role === 'driver' ? 'Driver' : 'Rider', payment.payer.name);
     drawLabelledColumn(doc, left + colWidth + 24, y, colWidth, 'Phone', payment.payer.phone || '-');
     y += 46;
+    drawLabelledColumn(doc, left, y, colWidth, 'Payment date & time', formatDateTime(payment.date));
+    drawLabelledColumn(doc, left + colWidth + 24, y, colWidth, 'Receipt type', payment.kind_label || 'Payment');
+    y += 46;
+    if (payment.vehicle_names?.length) {
+      drawLabelledColumn(doc, left, y, colWidth, 'Vehicle', payment.vehicle_names.join(', '));
+      drawLabelledColumn(doc, left + colWidth + 24, y, colWidth, 'Payment status', String(payment.status || 'paid').toUpperCase());
+      y += 46;
+    }
 
     sectionHeading('Payment');
     const amountX = right - 130;
@@ -495,7 +560,7 @@ export const renderPaymentReceiptPdf = (payment, { company, symbol }) =>
       .font(FONTS.regular)
       .fontSize(9.5)
       .fillColor(MUTED)
-      .text(`Payment: ${payment.detail}${payment.reference ? `  ·  Ref. ${payment.reference}` : ''}`, left, y, { width });
+      .text(`Payment: ${payment.method_label ? `${payment.method_label} - ` : ''}${payment.detail}${payment.reference ? `  ·  Ref. ${payment.reference}` : ''}`, left, y, { width });
     y += 30;
     doc.font(FONTS.bold).fontSize(10.5).fillColor(INK).text(`Thank you for choosing ${company.name}.`, left, y, { width, align: 'center' });
 

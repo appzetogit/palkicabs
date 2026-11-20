@@ -38,7 +38,7 @@ const METHOD_STYLES = {
 
 const STATUS_STYLES = {
   paid: 'text-emerald-700',
-  pending: 'text-amber-700',
+  pending: 'text-amber-700 bg-amber-50 rounded px-1',
   unpaid: 'text-rose-700',
 };
 
@@ -186,6 +186,7 @@ const Payments = () => {
     { label: 'Received online', value: totals.received_online, note: 'Gateway payments: rides, top-ups, passes' },
     { label: 'Cash with drivers', value: totals.cash_with_drivers, note: 'Ride fares collected in cash' },
     { label: 'Paid from wallets', value: totals.paid_from_wallet, note: 'Already counted when the wallet was topped up' },
+    { label: 'Covered by subscription', value: totals.covered_by_subscription, note: 'Rides paid by a rider pass' },
     { label: 'Pending online', value: totals.pending_online, note: 'Online rides not paid yet' },
   ];
 
@@ -236,9 +237,9 @@ const Payments = () => {
         <SubscriberReport />
       ) : (
         <>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
         {cards.map((card) => (
-          <div key={card.label} className="bg-white border border-gray-100 rounded-lg p-3 shadow-sm">
+          <div key={card.label} className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">{card.label}</p>
             <p className="text-lg font-bold text-gray-900 mt-1">{rupees(card.value)}</p>
             <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">{card.note}</p>
@@ -338,7 +339,7 @@ const Payments = () => {
                       {row.method_label}
                     </span>
                     <p className="text-[10px] text-gray-500 mt-0.5 max-w-[200px]">{row.detail}</p>
-                    <p className={`text-[10px] font-semibold capitalize ${STATUS_STYLES[row.status] || 'text-gray-500'}`}>{row.status}</p>
+                    <p className={`mt-0.5 inline-block text-[10px] font-semibold capitalize ${STATUS_STYLES[row.status] || 'text-gray-500'}`}>{row.status}</p>
                   </td>
                   <td className="px-3 py-2 font-mono text-[10px] text-gray-500 break-all max-w-[160px]">{row.reference || '-'}</td>
                   <td className="px-3 py-2 text-right font-bold text-gray-900 whitespace-nowrap">{rupees(row.amount)}</td>
@@ -350,7 +351,7 @@ const Payments = () => {
                       title={row.invoice_number}
                     >
                       {downloading === row.id ? <Loader2 size={12} className="animate-spin" /> : <FileText size={12} />}
-                      {row.kind === 'ride' ? 'Invoice' : 'Receipt'}
+                      {row.kind === 'ride' ? 'Invoice (PDF)' : 'Receipt (PDF)'}
                     </button>
                     <p className="text-[9px] text-gray-400 font-mono mt-0.5">{row.invoice_number}</p>
                   </td>

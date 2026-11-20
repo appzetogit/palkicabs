@@ -312,9 +312,9 @@ export const listPayments = async ({ kind = '', method = '', vehicle_type_id: ve
 
 const INVOICE_PREFIX = { ride: 'R', subscription: 'S', driver_top_up: 'T', rider_top_up: 'W' };
 
-/// A stable, readable number for a payment: ZC-R-6ACCD2BC for a ride.
+/// A stable, readable number for a payment: PLK-R-6ACCD2BC for a ride.
 export const invoiceNumber = (kind, id) =>
-  `ZC-${INVOICE_PREFIX[kind] || 'P'}-${String(id || '').slice(-8).toUpperCase()}`;
+  `PLK-${INVOICE_PREFIX[kind] || 'P'}-${String(id || '').slice(-8).toUpperCase()}`;
 
 /// One payment by kind and id, in the list's row shape, for its invoice.
 export const getPayment = async (kind, id) => {
