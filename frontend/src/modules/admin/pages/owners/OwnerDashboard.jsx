@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import AdminPageHeader from '../../components/ui/AdminPageHeader';
+import { adminService } from '../../services/adminService';
 
 const StatCard = ({ icon: Icon, label, value, color, onViewAll }) => (
   <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
@@ -58,22 +59,10 @@ const OwnerDashboard = () => {
     const fetchDashboard = async () => {
       try {
         setIsLoading(true);
-        const token = localStorage.getItem('token') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzdiZTZhYmJlOTJlYjYwMGYwMmQxNiIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwibW9iaWxlIjoiOTk5OTk5OTk5OSIsInJvbGUiOiJzdXBlci1hZG1pbiIsImlhdCI6MTc3NTA0OTExNywiZXhwIjoxODA2NTg1MTE3fQ.5KJmXJwaVefWhnc97EqtArkA1z7ZOhsJwA9fbyRVPdQ';
-        
-        const response = await fetch(globalThis.__LEGACY_BACKEND_ORIGIN__ + '/api/v1/admin/owner-management/dashboard', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        const resData = await response.json();
-        if (response.ok && resData.success) {
-          setData(resData.data);
-        } else {
-          setError(resData.message || 'Failed to fetch dashboard');
-        }
+        const response = await adminService.getOwnerDashboard();
+        setData(response?.data?.data || response?.data || null);
       } catch (err) {
-        setError('Network error');
+        setError(err?.response?.data?.message || err?.message || 'Could not load the dashboard');
       } finally {
         setIsLoading(false);
       }
@@ -90,13 +79,25 @@ const OwnerDashboard = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="mx-auto mt-16 max-w-md rounded-xl border border-red-100 bg-red-50 p-6 text-center">
+        <p className="text-sm font-bold text-red-600">{error}</p>
+        <button onClick={() => window.location.reload()} className="mt-3 rounded-lg bg-red-100 px-4 py-1.5 text-xs font-bold text-red-700 hover:bg-red-200">Retry</button>
+      </div>
+    );
+  }
+
+  const monthly = data?.monthly_earnings || [];
+  const maxMonthly = Math.max(1, ...monthly.map((m) => m.earnings));
+
   const stats = [
     { icon: Users, label: 'Registered Owners', value: data?.total_owners || 0, color: { bg: 'bg-emerald-50', text: 'text-emerald-500' }, path: '/admin/owners' },
     { icon: UserCheck, label: 'Approved Owners', value: data?.approved_owners || 0, color: { bg: 'bg-emerald-50', text: 'text-emerald-500' }, path: '/admin/owners' },
     { icon: Clock, label: 'Owner Awaiting Review', value: data?.pending_owners || 0, color: { bg: 'bg-red-50', text: 'text-red-500' }, path: '/admin/owners' },
-    { icon: Car, label: 'Registered Fleets', value: data?.total_fleets || 0, color: { bg: 'bg-emerald-50', text: 'text-emerald-500' }, path: '/admin/owners/fleet' },
-    { icon: Monitor, label: 'Approved Fleets', value: data?.approved_fleets || 0, color: { bg: 'bg-emerald-50', text: 'text-emerald-500' }, path: '/admin/owners/fleet' },
-    { icon: Car, label: 'Fleets Awaiting Review', value: data?.pending_fleets || 0, color: { bg: 'bg-red-50', text: 'text-red-500' }, path: '/admin/owners/fleet' },
+    { icon: Car, label: 'Registered Fleets', value: data?.total_fleets || 0, color: { bg: 'bg-emerald-50', text: 'text-emerald-500' }, path: '/admin/fleet/manage' },
+    { icon: Monitor, label: 'Approved Fleets', value: data?.approved_fleets || 0, color: { bg: 'bg-emerald-50', text: 'text-emerald-500' }, path: '/admin/fleet/manage' },
+    { icon: Car, label: 'Fleets Awaiting Review', value: data?.pending_fleets || 0, color: { bg: 'bg-red-50', text: 'text-red-500' }, path: '/admin/fleet/manage' },
     { icon: Monitor, label: 'Registered Drivers', value: data?.total_drivers || 0, color: { bg: 'bg-emerald-50', text: 'text-emerald-500' }, path: '/admin/drivers' },
     { icon: UserCheck, label: 'Approved Drivers', value: data?.approved_drivers || 0, color: { bg: 'bg-emerald-50', text: 'text-emerald-500' }, path: '/admin/drivers' },
     { icon: Clock, label: 'Drivers Awaiting Review', value: data?.pending_drivers || 0, color: { bg: 'bg-red-50', text: 'text-red-500' }, path: '/admin/drivers/pending' },
@@ -130,27 +131,21 @@ const OwnerDashboard = () => {
 
           {/* Charts & Finance Section */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Today Trips Chart Placeholder */}
+            {/* Today trips */}
             <div className="lg:col-span-1 bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col">
                <p className="text-sm font-bold text-gray-900 mb-6">Today Trips</p>
                <div className="flex-1 flex flex-col items-center justify-center relative min-h-[200px]">
-                  <div className="w-32 h-32 border-[8px] border-gray-50 rounded-full flex flex-col items-center justify-center">
-                     <p className="text-2xl font-black text-gray-200">0</p>
+                  <div className="w-32 h-32 border-[8px] border-yellow-100 rounded-full flex flex-col items-center justify-center">
+                     <p className="text-2xl font-black text-gray-900">{data?.today_trips?.total || 0}</p>
                      <p className="text-[10px] font-bold text-gray-400">Total Rides</p>
                   </div>
                   <div className="mt-6 w-full space-y-2">
-                     <div className="flex items-center justify-between px-4">
-                        <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-yellow-400"></div><span className="text-xs font-bold text-gray-500">Completed Rides</span></div>
-                        <span className="text-xs font-black text-gray-900">0</span>
-                     </div>
-                     <div className="flex items-center justify-between px-4">
-                        <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-amber-500"></div><span className="text-xs font-bold text-gray-500">Cancelled Rides</span></div>
-                        <span className="text-xs font-black text-gray-900">0</span>
-                     </div>
-                     <div className="flex items-center justify-between px-4">
-                        <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-sky-500"></div><span className="text-xs font-bold text-gray-500">Scheduled Rides</span></div>
-                        <span className="text-xs font-black text-gray-900">0</span>
-                     </div>
+                     {[['Completed', data?.today_trips?.completed, 'bg-green-500'], ['Ongoing', data?.today_trips?.ongoing, 'bg-sky-500'], ['Cancelled', data?.today_trips?.cancelled, 'bg-red-500']].map(([label, n, dot]) => (
+                       <div key={label} className="flex items-center justify-between px-4">
+                          <div className="flex items-center gap-2"><div className={`w-2 h-2 rounded-full ${dot}`}></div><span className="text-xs font-bold text-gray-500">{label}</span></div>
+                          <span className="text-xs font-black text-gray-900">{n || 0}</span>
+                       </div>
+                     ))}
                   </div>
                </div>
             </div>
@@ -175,23 +170,23 @@ const OwnerDashboard = () => {
                 <FinanceCard icon={FileText} label="Owner Earnings" value={data?.overall_owner_earnings || 0} color={{ bg: 'bg-slate-50', text: 'text-slate-500' }} />
              </div>
 
-             {/* Chart Placeholder */}
+             {/* Monthly earnings */}
              <div className="lg:col-span-1 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                <p className="text-sm font-bold text-gray-900 mb-4">Overall Earnings</p>
-                <div className="h-40 flex items-end justify-between gap-2 pl-8 pr-2 relative border-b-2 border-gray-100">
-                   <div className="flex-1 bg-emerald-500/10 h-0.5 rounded-t-sx transition-all"></div>
-                   <div className="flex-1 bg-emerald-500/10 h-0.5 rounded-t-sx transition-all"></div>
-                   <div className="flex-1 bg-emerald-500/10 h-0.5 rounded-t-sx transition-all"></div>
-                   
-                   {/* Values axis */}
-                   <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-[8px] font-bold text-gray-300">
-                      <span>2</span><span>1.6</span><span>1.2</span><span>0.8</span><span>0.4</span><span>0</span>
-                   </div>
-                </div>
-                <div className="flex justify-between mt-4 pl-8 pr-2">
-                   <span className="text-[10px] font-bold text-gray-400">January</span>
-                   <span className="text-[10px] font-bold text-gray-400">February</span>
-                   <span className="text-[10px] font-bold text-gray-400">March</span>
+                <p className="text-sm font-bold text-gray-900 mb-4">Earnings (last 6 months)</p>
+                {monthly.length === 0 ? (
+                  <p className="py-10 text-center text-xs font-semibold text-gray-400">No completed rides yet</p>
+                ) : (
+                  <div className="flex h-40 items-end justify-between gap-2 border-b-2 border-gray-100">
+                    {monthly.map((m) => (
+                      <div key={m.month} className="flex flex-1 flex-col items-center justify-end" title={`₹ ${m.earnings}`}>
+                        <span className="mb-1 text-[9px] font-bold text-gray-500">₹{m.earnings}</span>
+                        <div className="w-full rounded-t bg-emerald-500" style={{ height: `${Math.max(4, (m.earnings / maxMonthly) * 100)}%` }} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-3 flex justify-between gap-2">
+                  {monthly.map((m) => <span key={m.month} className="flex-1 text-center text-[10px] font-bold text-gray-400">{m.month.slice(5)}/{m.month.slice(2, 4)}</span>)}
                 </div>
              </div>
           </div>

@@ -49,6 +49,12 @@ const who = (row, kind) => {
 };
 const unassigned = (n) => !n || n === '--' || n === 'Unassigned';
 
+export const BookingCell = ({ row }) => (
+  <div className="leading-tight">
+    <p className="font-mono text-[12px] font-bold text-gray-900">{row.requestId || '-'}</p>
+    <p className="text-[11px] font-medium text-gray-400">{formatDateTime(row.date)}</p>
+  </div>
+);
 export const CustomerCell = ({ row }) => {
   const c = who(row, 'user');
   return (
@@ -69,7 +75,7 @@ export const DriverCell = ({ row }) => {
   );
 };
 export const RouteCell = ({ row }) => (
-  <div className="max-w-[260px] leading-tight">
+  <div className="w-[250px] leading-tight">
     <p className="flex items-center gap-1.5 truncate text-[12px] font-medium text-gray-700" title={row.pickupLabel}>
       <span className="h-2 w-2 shrink-0 rounded-full bg-green-500" />{row.pickupLabel || '-'}
     </p>
@@ -79,15 +85,15 @@ export const RouteCell = ({ row }) => (
   </div>
 );
 export const VehicleCell = ({ row }) => (
-  <div className="flex items-center gap-2">
-    {row.vehicleImage ? <img src={mediaUrl(row.vehicleImage)} alt="" className="h-7 w-11 rounded object-cover" loading="lazy" /> : null}
-    <div className="leading-tight">
-      <p className="text-[12px] font-bold capitalize text-gray-700">{row.vehicleName || clean(row.transportType)}</p>
+  <div className="flex w-[190px] items-center gap-2">
+    {row.vehicleImage ? <img src={mediaUrl(row.vehicleImage)} alt="" className="h-7 w-11 shrink-0 rounded object-cover" loading="lazy" /> : null}
+    <div className="min-w-0 leading-tight">
+      <p className="truncate text-[12px] font-bold capitalize text-gray-700" title={row.vehicleName || ''}>{row.vehicleName || clean(row.transportType)}</p>
       {row.distanceKm ? <p className="text-[11px] font-medium text-gray-400">{row.distanceKm} km</p> : null}
     </div>
   </div>
 );
-export const FareCell = ({ row }) => <span className="text-[13px] font-bold text-gray-900">{money(row.fare)}</span>;
+export const FareCell = ({ row }) => <span className="whitespace-nowrap text-[13px] font-bold text-gray-900">{money(row.fare)}</span>;
 
 export const StatCards = ({ items }) => (
   <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
@@ -108,10 +114,10 @@ const mapsLink = (from, to) => {
 };
 
 const Section = ({ icon: Icon, title, children }) => (
-  <section className="rounded-xl border border-gray-100 bg-white p-4">
-    <h3 className="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-gray-400"><Icon size={14} /> {title}</h3>
+  <div className="rounded-xl border border-gray-100 bg-white p-4">
+    <p className="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-gray-400"><Icon size={14} /> {title}</p>
     {children}
-  </section>
+  </div>
 );
 const KV = ({ label, children, mono }) => (
   <div>
@@ -142,19 +148,19 @@ export const BookingDetailsDrawer = ({ booking, onClose }) => {
   const proofs = [['Pickup proof', b.parcel?.pickupProof, b.parcel?.pickupProofAt], ['Delivery proof', b.parcel?.deliveryProof, b.parcel?.deliveryProofAt]].filter(([, u]) => u);
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm" onClick={onClose}>
-      <aside className="flex h-full w-full max-w-xl flex-col bg-gray-50 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <header className="flex items-start justify-between gap-3 border-b border-gray-200 bg-white px-5 py-4">
+    <div className="fixed inset-0 z-[100] flex justify-end bg-black/40" onClick={onClose}>
+      <div className="flex h-full w-full max-w-xl flex-col bg-gray-50 text-gray-900 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-start justify-between gap-3 border-b border-gray-200 bg-white px-5 py-4">
           <div>
             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{isDelivery ? 'Delivery booking' : 'Ride booking'}</p>
-            <h2 className="font-mono text-lg font-black text-gray-900">{b.requestId}</h2>
+            <p className="font-mono text-lg font-black text-gray-900">{b.requestId}</p>
             <p className="text-xs font-medium text-gray-500">{formatDateTime(b.date)}</p>
           </div>
           <div className="flex items-center gap-2">
             <StatusBadge status={b.tripStatus} />
             <button onClick={onClose} className="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-900" aria-label="Close"><X size={20} /></button>
           </div>
-        </header>
+        </div>
 
         <div className="flex-1 space-y-3 overflow-y-auto p-4">
           <Section icon={MapPin} title="Route">
@@ -267,10 +273,10 @@ export const BookingDetailsDrawer = ({ booking, onClose }) => {
           ) : null}
         </div>
 
-        <footer className="border-t border-gray-200 bg-white px-5 py-3 text-right">
+        <div className="border-t border-gray-200 bg-white px-5 py-3 text-right">
           <button onClick={onClose} className="rounded-lg bg-black px-6 py-2 text-sm font-bold text-white hover:bg-gray-900">Close</button>
-        </footer>
-      </aside>
+        </div>
+      </div>
     </div>
   );
 };

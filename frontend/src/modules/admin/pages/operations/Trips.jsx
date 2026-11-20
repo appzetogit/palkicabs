@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { adminService } from '../../services/adminService';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { BookingDetailsDrawer, CustomerCell, DriverCell, RouteCell, VehicleCell, FareCell, StatCards, money } from './bookingShared';
+import { BookingCell, BookingDetailsDrawer, CustomerCell, DriverCell, RouteCell, VehicleCell, FareCell, StatCards, money } from './bookingShared';
 
 const STATUS_STYLES = {
   CANCELLED: 'bg-red-100 text-red-700',
@@ -583,8 +583,8 @@ const Trips = () => {
             <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
                 <tr className="bg-gray-50/80 border-b border-gray-100">
-                  {['Request ID', 'Date', 'Customer', 'Driver', 'Route', 'Vehicle', 'Fare', 'Status', 'Payment', 'Action'].map((heading, i) => (
-                    <th key={heading} className={`px-4 py-2.5 text-[11px] font-bold text-gray-600 tracking-wide ${i === 9 ? 'text-right pr-5' : ''}`}>
+                  {['Booking', 'Customer', 'Driver', 'Route', 'Vehicle', 'Fare', 'Status', 'Payment', 'Action'].map((heading, i) => (
+                    <th key={heading} className={`px-4 py-2.5 text-[11px] font-bold text-gray-600 tracking-wide ${i === 8 ? 'text-right pr-5' : ''}`}>
                       {heading}
                     </th>
                   ))}
@@ -593,14 +593,14 @@ const Trips = () => {
               <tbody className="divide-y divide-gray-100">
                 {loading ? (
                   <tr>
-                    <td colSpan={10} className="py-24 text-center">
+                    <td colSpan={9} className="py-24 text-center">
                       <Loader2 className="animate-spin text-gray-300 mx-auto" size={32} />
                       <p className="mt-3 text-xs font-semibold text-gray-400 uppercase tracking-widest">Loading Requests...</p>
                     </td>
                   </tr>
                 ) : error ? (
                   <tr>
-                    <td colSpan={10} className="py-20 text-center">
+                    <td colSpan={9} className="py-20 text-center">
                        <div className="inline-flex items-center justify-center p-3 bg-red-50 text-red-500 rounded-full mb-3">
                           <XCircle size={24} />
                        </div>
@@ -610,8 +610,7 @@ const Trips = () => {
                 ) : filteredRows.length > 0 ? (
                   filteredRows.map((row) => (
                     <tr key={row.id} className="hover:bg-gray-50/50 transition-colors group">
-                      <td className="px-4 py-2 text-[13px] font-bold text-gray-900 font-mono">{row.requestId}</td>
-                      <td className="px-4 py-2 text-[13px] font-medium text-gray-500">{formatDate(row.date)}</td>
+                      <td className="px-4 py-2"><BookingCell row={row} /></td>
                       <td className="px-4 py-2"><CustomerCell row={row} /></td>
                       <td className="px-4 py-2"><DriverCell row={row} /></td>
                       <td className="px-4 py-2"><RouteCell row={row} /></td>
@@ -645,7 +644,7 @@ const Trips = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={10} className="py-24 text-center">
+                    <td colSpan={9} className="py-24 text-center">
                       <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 mx-auto mb-3">
                          <Filter size={24} />
                       </div>

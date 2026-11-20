@@ -4184,47 +4184,84 @@ export const createUser = async (payload) => {
 };
 
 export const getOwnerDashboardData = async () => {
+  const istDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+  const startOfToday = new Date(`${istDay}T00:00:00+05:30`);
+  const sixMonthsAgo = new Date(startOfToday);
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5, 1);
+
   const [
-    totalOwners,
-    approvedOwners,
-    totalDrivers,
-    approvedDrivers,
-    todayRides,
+    totalOwners, approvedOwners, totalFleets, approvedFleets, totalDrivers, approvedDrivers, ownerDriverIds,
   ] = await Promise.all([
-    Owner.countDocuments(),
-    Owner.countDocuments({ approve: true }),
-    Driver.countDocuments(),
-    Driver.countDocuments({ approve: true }),
-    Ride.countDocuments({
-      createdAt: {
-        $gte: new Date(new Date().setHours(0, 0, 0, 0)),
-        $lt: new Date(new Date().setHours(23, 59, 59, 999)),
-      },
-    }),
+    Owner.countDocuments({ deletedAt: null }),
+    Owner.countDocuments({ deletedAt: null, approve: true }),
+    FleetVehicle.countDocuments(),
+    FleetVehicle.countDocuments({ status: 'approved' }),
+    Driver.countDocuments({ owner_id: { $ne: null } }),
+    Driver.countDocuments({ owner_id: { $ne: null }, approve: true }),
+    Driver.distinct('_id', { owner_id: { $ne: null } }),
   ]);
+
+  // Rides driven by an owner's drivers.
+  const ownerRides = { driverId: { $in: ownerDriverIds }, adminDeletedAt: null };
+  const sums = (match) => Ride.aggregate([
+    { $match: { ...ownerRides, status: RIDE_STATUS.COMPLETED, ...match } },
+    { $group: {
+      _id: null,
+      earnings: { $sum: '$fare' },
+      cash: { $sum: { $cond: [{ $eq: ['$paymentMethod', 'cash'] }, '$fare', 0] } },
+      online: { $sum: { $cond: [{ $eq: ['$paymentMethod', 'online'] }, '$fare', 0] } },
+      wallet: { $sum: { $cond: [{ $eq: ['$paymentMethod', 'wallet'] }, '$fare', 0] } },
+      commission: { $sum: '$commissionAmount' },
+      driverEarnings: { $sum: '$driverEarnings' },
+    } },
+  ]);
+  const [today, overall, todayTrips, monthly] = await Promise.all([
+    sums({ createdAt: { $gte: startOfToday } }),
+    sums({}),
+    Ride.aggregate([
+      { $match: { ...ownerRides, createdAt: { $gte: startOfToday } } },
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+    ]),
+    Ride.aggregate([
+      { $match: { ...ownerRides, status: RIDE_STATUS.COMPLETED, createdAt: { $gte: sixMonthsAgo } } },
+      { $group: { _id: { $dateToString: { format: '%Y-%m', date: '$createdAt', timezone: 'Asia/Kolkata' } }, earnings: { $sum: '$fare' } } },
+      { $sort: { _id: 1 } },
+    ]),
+  ]);
+  const t = today[0] || {};
+  const o = overall[0] || {};
+  const byStatus = Object.fromEntries(todayTrips.map((x) => [x._id, x.count]));
+  const r0 = (n) => Math.round(Number(n || 0));
 
   return {
     total_owners: totalOwners,
     approved_owners: approvedOwners,
     pending_owners: totalOwners - approvedOwners,
+    total_fleets: totalFleets,
+    approved_fleets: approvedFleets,
+    pending_fleets: totalFleets - approvedFleets,
     total_drivers: totalDrivers,
     approved_drivers: approvedDrivers,
     pending_drivers: totalDrivers - approvedDrivers,
-    total_fleets: 0, // Placeholder
-    approved_fleets: 0,
-    pending_fleets: 0,
-    today_earnings: 0,
-    today_cash: 0,
-    today_wallet: 0,
-    today_online: 0,
-    admin_commission: 0,
-    driver_earnings: 0,
-    overall_earnings: 0,
-    overall_cash: 0,
-    overall_wallet: 0,
-    overall_online: 0,
-    overall_admin_comm: 0,
-    overall_owner_earnings: 0,
+    today_earnings: r0(t.earnings),
+    today_cash: r0(t.cash),
+    today_wallet: r0(t.wallet),
+    today_online: r0(t.online),
+    admin_commission: r0(t.commission),
+    driver_earnings: r0(t.driverEarnings),
+    overall_earnings: r0(o.earnings),
+    overall_cash: r0(o.cash),
+    overall_wallet: r0(o.wallet),
+    overall_online: r0(o.online),
+    overall_admin_comm: r0(o.commission),
+    overall_owner_earnings: r0(o.driverEarnings),
+    today_trips: {
+      total: Object.values(byStatus).reduce((a, b) => a + b, 0),
+      completed: byStatus[RIDE_STATUS.COMPLETED] || 0,
+      cancelled: byStatus[RIDE_STATUS.CANCELLED] || 0,
+      ongoing: (byStatus[RIDE_STATUS.ONGOING] || 0) + (byStatus[RIDE_STATUS.ACCEPTED] || 0) + (byStatus[RIDE_STATUS.SEARCHING] || 0),
+    },
+    monthly_earnings: monthly.map((m) => ({ month: m._id, earnings: r0(m.earnings) })),
   };
 };
 

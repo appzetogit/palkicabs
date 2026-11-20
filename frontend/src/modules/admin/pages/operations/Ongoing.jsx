@@ -3,7 +3,7 @@ import { Filter, MoreVertical, Search, Loader2, ChevronRight, CheckCircle, MapPi
 import { adminService } from '../../services/adminService';
 import toast from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
-import { BookingDetailsDrawer, CustomerCell, DriverCell, RouteCell, VehicleCell, FareCell, StatCards, money } from './bookingShared';
+import { BookingCell, BookingDetailsDrawer, CustomerCell, DriverCell, RouteCell, VehicleCell, FareCell, StatCards, money } from './bookingShared';
 
 const STATUS_STYLES = {
   ACCEPTED: 'bg-green-100 text-green-700 border border-green-200',
@@ -474,8 +474,8 @@ const Ongoing = () => {
             <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead className="sticky top-0 z-10 bg-white">
                 <tr className="bg-gray-50/80 border-b border-gray-100">
-                  {['Request ID', 'Date', 'Customer', 'Driver', 'Route', 'Vehicle', 'Fare', 'Status', 'Payment', 'Action'].map((heading, i) => (
-                    <th key={heading} className={`px-4 py-2.5 text-[11px] font-bold text-gray-600 tracking-wide ${i === 9 ? 'text-right pr-6' : ''}`}>
+                  {['Booking', 'Customer', 'Driver', 'Route', 'Vehicle', 'Fare', 'Status', 'Payment', 'Action'].map((heading, i) => (
+                    <th key={heading} className={`px-4 py-2.5 text-[11px] font-bold text-gray-600 tracking-wide ${i === 8 ? 'text-right pr-6' : ''}`}>
                       {heading}
                     </th>
                   ))}
@@ -484,14 +484,14 @@ const Ongoing = () => {
               <tbody className="divide-y divide-gray-100 bg-white">
                 {loading ? (
                   <tr>
-                    <td colSpan={10} className="py-24 text-center">
+                    <td colSpan={9} className="py-24 text-center">
                       <Loader2 className="animate-spin text-yellow-400 mx-auto" size={32} />
                       <p className="mt-3 text-xs font-bold text-gray-400 uppercase tracking-widest">Loading Requests...</p>
                     </td>
                   </tr>
                 ) : error ? (
                   <tr>
-                    <td colSpan={10} className="py-24 text-center">
+                    <td colSpan={9} className="py-24 text-center">
                       <div className="bg-red-50 text-red-500 p-4 rounded-lg inline-block border border-red-100">
                         <XCircle size={24} className="mx-auto mb-2" />
                         <p className="text-sm font-bold">{error}</p>
@@ -503,7 +503,7 @@ const Ongoing = () => {
                   </tr>
                 ) : visibleRows.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="py-24 text-center">
+                    <td colSpan={9} className="py-24 text-center">
                       <div className="mx-auto flex flex-col items-center justify-center opacity-50">
                         <Truck size={48} className="text-gray-300 mb-3" />
                         <p className="text-sm font-bold text-gray-500">No Ongoing Requests Found</p>
@@ -514,8 +514,7 @@ const Ongoing = () => {
                 ) : (
                   visibleRows.map((row) => (
                     <tr key={row.id || row.requestId || Math.random()} className="hover:bg-yellow-50/30 transition-colors group cursor-pointer" onClick={() => setSelectedRequest(row)}>
-                      <td className="px-4 py-2 text-[13px] font-bold text-gray-900 font-mono">{row.requestId || '-'}</td>
-                      <td className="px-4 py-2 text-[12px] font-medium text-gray-600">{formatDate(row.date)}</td>
+                      <td className="px-4 py-2"><BookingCell row={row} /></td>
                       <td className="px-4 py-2"><CustomerCell row={row} /></td>
                       <td className="px-4 py-2"><DriverCell row={row} /></td>
                       <td className="px-4 py-2"><RouteCell row={row} /></td>
