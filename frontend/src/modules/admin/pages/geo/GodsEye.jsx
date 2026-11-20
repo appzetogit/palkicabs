@@ -4,7 +4,9 @@ import {
   MarkerF, 
   MarkerClustererF, 
   TrafficLayer, 
-  HeatmapLayerF 
+  HeatmapLayerF,
+  PolylineF,
+  PolygonF
 } from '@react-google-maps/api';
 import { 
   Search, Filter, Activity, Users, Car, AlertTriangle, IndianRupee, Clock,
@@ -98,6 +100,9 @@ const GodsEye = () => {
   const [drivers, setDrivers] = useState([]);
   const [rides, setRides] = useState([]);
   const [alerts, setAlerts] = useState([]);
+  const [zoneShapes, setZoneShapes] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [cities, setCities] = useState([]);
   const [dashboardData, setDashboardData] = useState({});
   const [earningsData, setEarningsData] = useState({});
   const [loading, setLoading] = useState(true);
@@ -126,36 +131,35 @@ const GodsEye = () => {
   // Selection
   const [selectedDriver, setSelectedDriver] = useState(null);
 
+  useEffect(() => {
+    adminService.getServiceLocations().then((res) => {
+      const d = res?.data?.data ?? res?.data ?? [];
+      const list = Array.isArray(d) ? d : (d.results || []);
+      setCities(list.map((c) => ({ id: c._id || c.id, name: c.service_location_name || c.name })).filter((c) => c.id));
+    }).catch(() => {});
+  }, []);
+
   // Fetch Logic
   const fetchMapData = useCallback(async () => {
     setLoading(true);
     try {
-      const [drvRes, ridesRes, alertsRes, dashRes, earnRes] = await Promise.allSettled([
-        adminService.getDrivers(1, 1000, {}).catch(() => ({ data: { results: [] }})),
-        adminService.getOngoingRides().catch(() => ({ data: { results: [] }})),
-        adminService.getSafetyAlerts().catch(() => ({ data: { results: [] }})),
-        adminService.getDashboardData().catch(() => ({ data: {} })),
-        adminService.getTodayEarnings().catch(() => ({ data: {} }))
-      ]);
+      const res = await adminService.getGeoOverview({ city: filters.city === 'all' ? '' : filters.city });
+      const payload = res?.data?.data ?? res?.data ?? {};
+      setDrivers(Array.isArray(payload.drivers) ? payload.drivers : []);
+      setRides(Array.isArray(payload.rides) ? payload.rides : []);
+      setAlerts(Array.isArray(payload.alerts) ? payload.alerts : []);
+      setZoneShapes(Array.isArray(payload.zones) ? payload.zones : []);
+      setStats(payload.stats || null);
+      setDashboardData({ totalTripsToday: payload.stats?.tripsToday || 0 });
+      setEarningsData({ today: payload.stats?.revenueToday || 0 });
 
-      const drvList = drvRes.status === 'fulfilled' ? (drvRes.value?.data?.results || drvRes.value?.data || []) : [];
-      const ridesList = ridesRes.status === 'fulfilled' ? (ridesRes.value?.data?.results || ridesRes.value?.data || []) : [];
-      const alertsList = alertsRes.status === 'fulfilled' ? (alertsRes.value?.data?.results || alertsRes.value?.data || []) : [];
-      
-      setDrivers(Array.isArray(drvList) ? drvList : []);
-      setRides(Array.isArray(ridesList) ? ridesList : []);
-      setAlerts(Array.isArray(alertsList) ? alertsList : []);
-      
-      if (dashRes.status === 'fulfilled') setDashboardData(dashRes.value?.data || {});
-      if (earnRes.status === 'fulfilled') setEarningsData(earnRes.value?.data || {});
-      
       setLastSync(new Date());
     } catch (error) {
       console.error('Failed to fetch Gods Eye data', error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [filters.city]);
 
   useEffect(() => {
     fetchMapData();
@@ -219,8 +223,6 @@ const GodsEye = () => {
       }
 
       // Service Type, City, Zone (Assuming fields exist, simplified matching)
-      if (filters.city !== 'all' && d.city !== filters.city) return false;
-      if (filters.zone !== 'all' && d.zone_name !== filters.zone) return false;
 
       return true;
     });
@@ -244,14 +246,14 @@ const GodsEye = () => {
 
   // Metrics (Derived or from dashboardData)
   const metrics = {
-    online: drivers.filter(d => d.isOnline).length,
-    offline: drivers.filter(d => !d.isOnline).length,
-    busy: drivers.filter(d => d.isOnRide).length,
-    idle: drivers.filter(d => d.isOnline && !d.isOnRide).length,
-    liveTrips: rides.length,
-    sos: alerts.filter(a => a.status === 'active').length,
-    revenue: earningsData?.today || 0,
-    tripsToday: dashboardData?.totalTripsToday || 0
+    online: stats?.online ?? drivers.filter(d => d.isOnline).length,
+    offline: stats?.offline ?? drivers.filter(d => !d.isOnline).length,
+    busy: stats?.busy ?? drivers.filter(d => d.isOnRide).length,
+    idle: stats?.idle ?? drivers.filter(d => d.isOnline && !d.isOnRide).length,
+    liveTrips: stats?.liveTrips ?? rides.length,
+    sos: stats?.sos ?? alerts.filter(a => a.status === 'active').length,
+    revenue: Number(earningsData?.today || 0),
+    tripsToday: dashboardData?.totalTripsToday || 0,
   };
 
   const handleMarkerClick = useCallback((driver) => {
@@ -367,6 +369,18 @@ const GodsEye = () => {
                </div>
 
                <div>
+                  <label className="block text-xs font-semibold capitalize text-gray-500 mb-1">City</label>
+                  <select
+                    value={filters.city}
+                    onChange={e => setFilters(prev => ({...prev, city: e.target.value}))}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-black outline-none focus:border-yellow-400"
+                  >
+                     <option value="all">All Cities</option>
+                     {cities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+               </div>
+
+               <div>
                   <label className="block text-xs font-semibold capitalize text-gray-500 mb-1">Refresh Mode</label>
                   <select 
                     value={filters.refreshMode} 
@@ -459,6 +473,22 @@ const GodsEye = () => {
                      onClick={() => setSelectedDriver(null)}
                   >
                      {controls.traffic && <TrafficLayer />}
+
+                     {zoneShapes.map((z) => (
+                        <PolygonF key={z.id} paths={z.polygon} options={{ strokeColor: '#facc15', strokeOpacity: 0.9, strokeWeight: 2, fillColor: '#facc15', fillOpacity: 0.05, clickable: false }} />
+                     ))}
+
+                     {rides.map((r) => (
+                        <React.Fragment key={`ride-${r.id}`}>
+                           {r.drop && <PolylineF path={[r.pickup, ...(r.driverLocation ? [r.driverLocation] : []), r.drop]} options={{ strokeColor: r.serviceKey === 'parcel' ? '#f97316' : '#2563eb', strokeOpacity: 0.7, strokeWeight: 3, clickable: false }} />}
+                           <MarkerF position={{ lat: r.pickup.lat, lng: r.pickup.lng }} title={`${r.requestId} pickup`} icon={{ path: 0, scale: 6, fillColor: '#16a34a', fillOpacity: 1, strokeColor: '#ffffff', strokeWeight: 2 }} />
+                           {r.drop && <MarkerF position={{ lat: r.drop.lat, lng: r.drop.lng }} title={`${r.requestId} drop`} icon={{ path: 0, scale: 6, fillColor: '#dc2626', fillOpacity: 1, strokeColor: '#ffffff', strokeWeight: 2 }} />}
+                        </React.Fragment>
+                     ))}
+
+                     {alerts.filter((a) => a.status === 'active' && a.location).map((a) => (
+                        <MarkerF key={`sos-${a.id}`} position={{ lat: a.location.lat, lng: a.location.lng }} title={`SOS ${a.tripCode}`} label={{ text: 'SOS', color: '#ffffff', fontSize: '10px', fontWeight: '800' }} icon={{ path: 0, scale: 14, fillColor: '#dc2626', fillOpacity: 1, strokeColor: '#ffffff', strokeWeight: 2 }} />
+                     ))}
                      
                      {controls.heatmap && (
                         <HeatmapLayerF 

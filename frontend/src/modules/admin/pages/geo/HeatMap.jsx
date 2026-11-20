@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Circle, GoogleMap } from '@react-google-maps/api';
+import { GoogleMap, HeatmapLayerF } from '@react-google-maps/api';
 import { 
   ChevronRight, 
   Map as MapIcon, 
@@ -76,7 +76,7 @@ const HeatMap = () => {
   // Settings State
   const [heatSource, setHeatSource] = useState('ride_requests');
   const [opacity, setOpacity] = useState(0.7);
-  const [radius, setRadius] = useState(40);
+  const [radius, setRadius] = useState(30);
   
   // Filters State
   const [timeRange, setTimeRange] = useState('all');
@@ -103,9 +103,13 @@ const HeatMap = () => {
           adminService.getZones().catch(() => ({ data: [] })),
           adminService.getVehicleTypes().catch(() => ({ data: { results: [] } }))
         ]);
-        setServiceLocations(locRes.data?.results || locRes.data || []);
-        setZones(zoneRes.data?.results || zoneRes.data || []);
-        setVehicleTypes(vTypeRes.data?.results || vTypeRes.data || []);
+        const list = (res) => {
+          const d = res?.data?.data ?? res?.data ?? {};
+          return Array.isArray(d) ? d : (d.results || d.service_locations || d.zones || d.vehicle_types || []);
+        };
+        setServiceLocations(list(locRes).map((l) => ({ ...l, name: l.service_location_name || l.name })));
+        setZones(list(zoneRes));
+        setVehicleTypes(list(vTypeRes));
       } catch (err) {
         console.error("Failed to load filter options", err);
       }
@@ -116,21 +120,15 @@ const HeatMap = () => {
   const fetchHeatmapData = useCallback(async () => {
     setLoading(true);
     try {
-      let results = [];
-      if (heatSource === 'ride_requests') {
-        const res = await adminService.getRideRequests({ page: 1, limit: 500, tab: 'all' });
-        results = res?.data?.results || res?.data || [];
-      } else if (heatSource === 'active_drivers') {
-        const res = await adminService.getDrivers({ page: 1, limit: 500, status: 'active' });
-        results = res?.data?.results || res?.data || [];
-      } else if (heatSource === 'trip_pickups' || heatSource === 'trip_drops') {
-        const res = await adminService.getTrips({ page: 1, limit: 500, tab: 'all' });
-        results = res?.data?.results || res?.data || [];
-      } else if (heatSource === 'sos_alerts') {
-        const res = await adminService.getSafetyAlerts({ page: 1, limit: 500 });
-        results = res?.data?.results || res?.data || [];
-      }
-      setDataPoints(Array.isArray(results) ? results : []);
+      const res = await adminService.getGeoHeatmap({
+        source: heatSource,
+        timeRange,
+        city: serviceLocation === 'all' ? '' : serviceLocation,
+        zone: zone === 'all' ? '' : zone,
+        vehicle: vehicleType === 'all' ? '' : vehicleType,
+      });
+      const payload = res?.data?.data ?? res?.data ?? {};
+      setDataPoints(Array.isArray(payload.results) ? payload.results : []);
       setLastSync(new Date());
     } catch (error) {
       console.error('Failed to fetch heatmap data', error);
@@ -138,40 +136,13 @@ const HeatMap = () => {
     } finally {
       setLoading(false);
     }
-  }, [heatSource]);
+  }, [heatSource, timeRange, serviceLocation, zone, vehicleType]);
 
   useEffect(() => {
     fetchHeatmapData();
   }, [fetchHeatmapData]);
 
-  // Client-side filtering
-  const filteredData = useMemo(() => {
-    return dataPoints.filter((item) => {
-      // Time Filter
-      if (timeRange !== 'all') {
-        const itemDate = new Date(item.createdAt || item.date || item.updatedAt);
-        if (!isNaN(itemDate.getTime())) {
-          const now = new Date();
-          const diffHour = (now - itemDate) / (1000 * 60 * 60);
-          if (timeRange === 'last_hour' && diffHour > 1) return false;
-          if (timeRange === 'today' && itemDate.toDateString() !== now.toDateString()) return false;
-        }
-      }
-
-      // We apply generic matching if fields exist
-      if (serviceLocation !== 'all' && item.serviceLocationId && item.serviceLocationId !== serviceLocation) {
-        return false;
-      }
-      if (zone !== 'all' && item.zoneId && item.zoneId !== zone) {
-        return false;
-      }
-      if (vehicleType !== 'all' && item.vehicleTypeId && item.vehicleTypeId !== vehicleType) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [dataPoints, timeRange, serviceLocation, zone, vehicleType]);
+  const filteredData = dataPoints;
 
   const requestOverlays = useMemo(() => {
     const buckets = new Map();
@@ -195,13 +166,26 @@ const HeatMap = () => {
   }, [filteredData, heatSource]);
 
   const mapCenter = useMemo(() => {
-    if (requestOverlays.length > 0) {
-      return requestOverlays[0].center;
-    }
-    return INDIA_CENTER;
+    if (requestOverlays.length === 0) return INDIA_CENTER;
+    const total = requestOverlays.reduce((n, o) => n + o.count, 0);
+    return {
+      lat: requestOverlays.reduce((n, o) => n + o.center.lat * o.count, 0) / total,
+      lng: requestOverlays.reduce((n, o) => n + o.center.lng * o.count, 0) / total,
+    };
   }, [requestOverlays]);
 
-  const circleRadiusMeters = Math.max(250, radius * 140);
+  // Wide spread (e.g. all of Uttar Pradesh) needs a wider view than one city.
+  const mapZoom = useMemo(() => {
+    if (requestOverlays.length < 2) return 11;
+    const lats = requestOverlays.map((o) => o.center.lat); const lngs = requestOverlays.map((o) => o.center.lng);
+    const span = Math.max(Math.max(...lats) - Math.min(...lats), Math.max(...lngs) - Math.min(...lngs));
+    return span > 6 ? 6 : span > 3 ? 7 : span > 1.5 ? 8 : span > 0.7 ? 9 : span > 0.3 ? 10 : 11;
+  }, [requestOverlays]);
+
+  const heatData = useMemo(() => {
+    if (!isLoaded || !window.google?.maps?.visualization) return [];
+    return requestOverlays.map((o) => ({ location: new window.google.maps.LatLng(o.center.lat, o.center.lng), weight: o.count }));
+  }, [requestOverlays, isLoaded]);
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-3 lg:p-4 mx-auto w-full max-w-[1600px] font-sans">
@@ -234,23 +218,15 @@ const HeatMap = () => {
               ) : HAS_VALID_GOOGLE_MAPS_KEY && isLoaded ? (
                  <>
                    <GoogleMap
-                      mapContainerStyle={MAP_CONTAINER_STYLE} center={mapCenter} zoom={11} options={mapOptions}
+                      mapContainerStyle={MAP_CONTAINER_STYLE} center={mapCenter} zoom={mapZoom} options={mapOptions}
                    >
-                      {requestOverlays.map((overlay) => (
-                        <Circle
-                          key={overlay.id}
-                          center={overlay.center}
-                          radius={circleRadiusMeters * Math.max(1, Math.min(overlay.count, 6))}
-                          options={{
-                            fillColor: FIRE_OVERLAY_STYLE.fillColor,
-                            fillOpacity: Math.max(0.18, Math.min(opacity * 0.6, 0.82)),
-                            strokeColor: FIRE_OVERLAY_STYLE.strokeColor,
-                            strokeOpacity: Math.max(0.2, Math.min(opacity, 0.9)),
-                            strokeWeight: 2,
-                            clickable: false,
-                          }}
+                      {heatData.length > 0 && (
+                        <HeatmapLayerF
+                          key={`${heatSource}-${radius}-${opacity}`}
+                          data={heatData}
+                          options={{ radius, opacity, dissipating: true }}
                         />
-                      ))}
+                      )}
                    </GoogleMap>
                    {requestOverlays.length === 0 && !loading && (
                      <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[2px] pointer-events-none">
@@ -299,7 +275,7 @@ const HeatMap = () => {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
                  
                  {/* Filters Left Column */}
-                 <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-4 gap-2">
+                 <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-3 gap-2">
                     <div>
                        <label className={labelClass}>Heat Source</label>
                        <select
@@ -325,6 +301,8 @@ const HeatMap = () => {
                          <option value="all">All Time</option>
                          <option value="last_hour">Last 1 Hour</option>
                          <option value="today">Today</option>
+                         <option value="last_7_days">Last 7 Days</option>
+                         <option value="last_30_days">Last 30 Days</option>
                        </select>
                     </div>
 
@@ -339,6 +317,14 @@ const HeatMap = () => {
                          {serviceLocations.map(loc => (
                            <option key={loc._id} value={loc._id}>{loc.name || loc.city}</option>
                          ))}
+                       </select>
+                    </div>
+
+                    <div>
+                       <label className={labelClass}>Zone</label>
+                       <select value={zone} onChange={(e) => setZone(e.target.value)} className={inputClass}>
+                         <option value="all">All Zones</option>
+                         {zones.map((z) => (<option key={z._id || z.id} value={z._id || z.id}>{z.name}</option>))}
                        </select>
                     </div>
 
@@ -377,7 +363,7 @@ const HeatMap = () => {
                           <span className="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded font-mono">{radius}px</span>
                        </div>
                        <input 
-                         type="range" min="1" max="100" step="1" value={radius} 
+                         type="range" min="1" max="60" step="1" value={radius} 
                          onChange={e => setRadius(Number(e.target.value))}
                          className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-800"
                        />

@@ -106,6 +106,8 @@ import {
   getCountries,
   getDashboardData,
   getDeliveries,
+  getGeoOverview,
+  getGeoHeatmap,
   getEmployee,
   getEmployees,
   getDriver,
@@ -524,6 +526,8 @@ adminRouter.get('/admin/landing-content', getAdminLandingContent);
 adminRouter.put('/admin/landing-content', saveAdminLandingContent);
 adminRouter.delete('/admin/ongoing-rides/:id', deleteOngoingRide);
 adminRouter.get('/admin/deliveries', getDeliveries);
+adminRouter.get('/admin/geo/overview', getGeoOverview);
+adminRouter.get('/admin/geo/heatmap', getGeoHeatmap);
 adminRouter.get('/admin/trips', getIntercityTrips);
 
 adminRouter.get('/admin/wallet/withdrawals', getWithdrawals);

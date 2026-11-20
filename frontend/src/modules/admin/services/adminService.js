@@ -214,6 +214,8 @@ export const adminService = {
   resolveSafetyAlert: (id, note = '') => api.patch(`/admin/safety/alerts/${id}/resolve`, { note }),
   getOngoingRides: (params = {}) => api.get(`/admin/ongoing-rides?${bookingQuery(params)}`),
   getOwnerDashboard: () => api.get('/admin/owner-management/dashboard'),
+  getGeoOverview: (params = {}) => api.get(`/admin/geo/overview?${bookingQuery(params)}`),
+  getGeoHeatmap: (params = {}) => api.get(`/admin/geo/heatmap?${bookingQuery(params)}`),
   getRideRequests: (params = {}) => api.get(`/admin/ride-requests?${bookingQuery(params)}`),
   listRideRequests: (params = {}) => api.get(`/admin/ride-requests?${bookingQuery(params)}`),
   getDeliveries: (params = {}) => api.get(`/admin/deliveries?${bookingQuery(params)}`),

@@ -13247,3 +13247,117 @@ export const getAdminEarningDetails = async (query = {}) => {
       return rideResult('Total commission', 'Commission PALKI earned on each completed trip.', rides, 'Commission', money(summary.adminCommission));
   }
 };
+
+// ---------------------------------------------------------------------------
+// Geo pages (God's Eye + Heat Map). One normalised payload each, so the pages
+// do not have to page through the list APIs and guess field names.
+// ---------------------------------------------------------------------------
+const usableCoordinates = (point) => {
+  const c = point?.coordinates;
+  return Array.isArray(c) && c.length === 2 && Number.isFinite(c[0]) && Number.isFinite(c[1]) && !(c[0] === 0 && c[1] === 0);
+};
+const idStr = (v) => (v ? String(v._id || v) : '');
+
+export const getGeoOverview = async (query = {}) => {
+  const istDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+  const startOfToday = new Date(`${istDay}T00:00:00+05:30`);
+  const driverFilter = { deletedAt: null, approve: true };
+  if (mongoose.isValidObjectId(query.city)) driverFilter.service_location_id = new mongoose.Types.ObjectId(query.city);
+
+  const [drivers, zones, locations, liveRides, alerts, todayAgg, tripsToday] = await Promise.all([
+    Driver.find(driverFilter).select('name phone profile_picture profileImage location heading isOnline isOnRide vehicleType vehicleIconType vehicleMake vehicleModel vehicleNumber city zoneId service_location_id rating').limit(3000).lean(),
+    Zone.find({ active: true }).select('name geometry service_location_id').lean(),
+    ServiceLocation.find().select('name').lean(),
+    Ride.find({ status: { $in: [RIDE_STATUS.SEARCHING, RIDE_STATUS.ACCEPTED, RIDE_STATUS.ONGOING] }, adminDeletedAt: null })
+      .sort({ createdAt: -1 }).limit(300).populate('userId', 'name phone').populate('driverId', 'name phone vehicleNumber').populate('vehicleTypeId', 'name').lean(),
+    SafetyAlert.find().sort({ createdAt: -1 }).limit(50).lean(),
+    Ride.aggregate([{ $match: { status: RIDE_STATUS.COMPLETED, adminDeletedAt: null, createdAt: { $gte: startOfToday } } }, { $group: { _id: null, sum: { $sum: '$fare' } } }]),
+    Ride.countDocuments({ adminDeletedAt: null, createdAt: { $gte: startOfToday } }),
+  ]);
+  const zoneName = Object.fromEntries(zones.map((z) => [String(z._id), z.name]));
+  const locName = Object.fromEntries(locations.map((l) => [String(l._id), l.name]));
+  const rideByDriver = {};
+  for (const r of liveRides) if (r.driverId?._id) rideByDriver[String(r.driverId._id)] = r;
+
+  const driverRows = drivers.filter((d) => usableCoordinates(d.location)).map((d) => {
+    const ride = rideByDriver[String(d._id)];
+    return {
+      _id: String(d._id), id: String(d._id), name: d.name, phone: d.phone, profile_image: d.profile_picture || d.profileImage || '',
+      latitude: d.location.coordinates[1], longitude: d.location.coordinates[0], heading: d.heading ?? null,
+      isOnline: Boolean(d.isOnline), isOnRide: Boolean(d.isOnRide) || Boolean(ride),
+      vehicle_type: d.vehicleType, vehicle_icon_type: d.vehicleIconType || d.vehicleType, vehicle_model: [d.vehicleMake, d.vehicleModel].filter(Boolean).join(' '),
+      vehicle_number: d.vehicleNumber, city: d.city || '', zone_name: zoneName[String(d.zoneId)] || '', service_location_name: locName[String(d.service_location_id)] || '',
+      rating: d.rating ?? null, passenger_name: ride?.userId?.name || '', current_ride_id: ride ? String(ride._id) : '',
+    };
+  });
+
+  const rideRows = liveRides.filter((r) => usableCoordinates(r.pickupLocation)).map((r) => {
+    const [serviceKey, serviceLabel] = rideServiceOf(r);
+    return {
+      _id: String(r._id), id: String(r._id), requestId: `${r.serviceType === 'parcel' ? 'DEL' : 'REQ'}_${String(r._id).slice(-12).toUpperCase()}`, createdAt: r.createdAt,
+      status: r.status, liveStatus: r.liveStatus, serviceKey, serviceLabel, fare: Number(r.fare || 0), vehicleName: r.vehicleTypeId?.name || '',
+      pickup: { lat: r.pickupLocation.coordinates[1], lng: r.pickupLocation.coordinates[0], label: r.pickupAddress || '' },
+      drop: usableCoordinates(r.dropLocation) ? { lat: r.dropLocation.coordinates[1], lng: r.dropLocation.coordinates[0], label: r.dropAddress || '' } : null,
+      driverLocation: usableCoordinates(r.lastDriverLocation) ? { lat: r.lastDriverLocation.coordinates[1], lng: r.lastDriverLocation.coordinates[0] } : null,
+      user: r.userId ? { name: r.userId.name, phone: r.userId.phone } : null,
+      driver: r.driverId ? { name: r.driverId.name, phone: r.driverId.phone, vehicleNumber: r.driverId.vehicleNumber } : null,
+    };
+  });
+
+  const alertRows = alerts.map((a) => ({
+    _id: String(a._id), id: String(a._id), status: a.status, createdAt: a.createdAt, tripCode: a.tripCode, notes: a.notes || '',
+    user: { name: a.riderName || '', phone: a.riderPhone || '' }, driver: { name: a.driverName || '', phone: a.driverPhone || '' },
+    location: usableCoordinates(a.location) ? { lat: a.location.coordinates[1], lng: a.location.coordinates[0], label: a.locationLabel || a.pickupAddress || '' } : null,
+  }));
+
+  const online = driverRows.filter((d) => d.isOnline).length;
+  const busy = driverRows.filter((d) => d.isOnRide).length;
+  return {
+    drivers: driverRows,
+    rides: rideRows,
+    alerts: alertRows,
+    zones: zones.map((z) => ({ id: String(z._id), name: z.name, polygon: (z.geometry?.coordinates?.[0] || []).map(([lng, lat]) => ({ lat, lng })) })),
+    stats: {
+      totalDrivers: driverRows.length, online, offline: driverRows.length - online, busy, idle: driverRows.filter((d) => d.isOnline && !d.isOnRide).length,
+      liveTrips: rideRows.length, sos: alertRows.filter((a) => a.status === 'active').length, revenueToday: Math.round(todayAgg[0]?.sum || 0), tripsToday,
+    },
+  };
+};
+
+export const getGeoHeatmap = async (query = {}) => {
+  const source = String(query.source || 'ride_requests');
+  const range = String(query.timeRange || 'all');
+  const now = Date.now();
+  const since = { last_hour: now - 3600e3, last_7_days: now - 7 * 864e5, last_30_days: now - 30 * 864e5 }[range];
+  const istDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+  const from = range === 'today' ? new Date(`${istDay}T00:00:00+05:30`) : since ? new Date(since) : null;
+  const when = from ? { createdAt: { $gte: from } } : {};
+  const city = mongoose.isValidObjectId(query.city) ? new mongoose.Types.ObjectId(query.city) : null;
+  const vehicle = mongoose.isValidObjectId(query.vehicle) ? new mongoose.Types.ObjectId(query.vehicle) : null;
+  let zoneGeometry = null;
+  if (mongoose.isValidObjectId(query.zone)) zoneGeometry = (await Zone.findById(query.zone).select('geometry').lean())?.geometry || null;
+  const inZone = (field) => (zoneGeometry ? { [field]: { $geoWithin: { $geometry: zoneGeometry } } } : {});
+
+  let results = [];
+  if (source === 'active_drivers') {
+    const rows = await Driver.find({
+      deletedAt: null, approve: true, ...(city ? { service_location_id: city } : {}), ...(vehicle ? { vehicleTypeId: vehicle } : {}),
+      ...inZone('location'), ...(query.onlineOnly === '1' ? { isOnline: true } : {}),
+    }).select('location createdAt service_location_id zoneId vehicleTypeId isOnline').limit(5000).lean();
+    results = rows.filter((d) => usableCoordinates(d.location)).map((d) => ({
+      location: d.location, createdAt: d.createdAt, serviceLocationId: idStr(d.service_location_id), zoneId: idStr(d.zoneId), vehicleTypeId: idStr(d.vehicleTypeId),
+    }));
+  } else if (source === 'sos_alerts') {
+    const rows = await SafetyAlert.find({ ...when, ...inZone('location') }).select('location createdAt').limit(5000).lean();
+    results = rows.filter((a) => usableCoordinates(a.location)).map((a) => ({ location: a.location, createdAt: a.createdAt }));
+  } else {
+    const field = source === 'trip_drops' ? 'dropLocation' : 'pickupLocation';
+    const rows = await Ride.find({
+      adminDeletedAt: null, ...when, ...(city ? { service_location_id: city } : {}), ...(vehicle ? { vehicleTypeId: vehicle } : {}), ...inZone(field),
+    }).select('pickupLocation dropLocation createdAt service_location_id vehicleTypeId').limit(5000).lean();
+    results = rows.filter((r) => usableCoordinates(r[field])).map((r) => ({
+      pickupLocation: r.pickupLocation, dropLocation: r.dropLocation, createdAt: r.createdAt, serviceLocationId: idStr(r.service_location_id), vehicleTypeId: idStr(r.vehicleTypeId),
+    }));
+  }
+  return { source, results, total: results.length };
+};

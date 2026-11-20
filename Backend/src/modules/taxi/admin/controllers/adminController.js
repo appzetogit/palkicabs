@@ -759,6 +759,12 @@ export const deleteRideRequest = asyncHandler(async (req, res) =>
 export const getDeliveries = asyncHandler(async (req, res) =>
   ok(res, await adminService.listDeliveries(req.query)),
 );
+export const getGeoOverview = asyncHandler(async (req, res) =>
+  ok(res, await adminService.getGeoOverview(req.query)),
+);
+export const getGeoHeatmap = asyncHandler(async (req, res) =>
+  ok(res, await adminService.getGeoHeatmap(req.query)),
+);
 export const getIntercityTrips = asyncHandler(async (req, res) =>
   ok(res, await adminService.listIntercityTrips(req.query)),
 );
