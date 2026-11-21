@@ -14,8 +14,9 @@ cd "$APP"
 if [ -n "${DEPLOY_REF:-}" ]; then
   git reset --hard "$DEPLOY_REF"
 else
-  git fetch origin main
-  git reset --hard origin/main
+  BRANCH="${DEPLOY_BRANCH:-main}"
+  git fetch origin "$BRANCH"
+  git reset --hard "origin/$BRANCH"
 fi
 sh scripts/scan-for-injected-code.sh   # abort the deploy if injected code is present
 
