@@ -10,8 +10,13 @@ cd "$APP"
 [ -f Backend/.env ] || { echo "Backend/.env missing"; exit 1; }
 [ -f frontend/.env.production ] || { echo "frontend/.env.production missing"; exit 1; }
 
-git fetch origin main
-git reset --hard origin/main
+# DEPLOY_REF lets a verified local commit be deployed without GitHub (e.g. when origin/main is tampered with).
+if [ -n "${DEPLOY_REF:-}" ]; then
+  git reset --hard "$DEPLOY_REF"
+else
+  git fetch origin main
+  git reset --hard origin/main
+fi
 sh scripts/scan-for-injected-code.sh   # abort the deploy if injected code is present
 
 (cd Backend && npm ci --omit=dev)
