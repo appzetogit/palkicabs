@@ -17,6 +17,7 @@ import { PoolingRoute } from '../admin/models/PoolingRoute.js';
 import { Owner } from '../admin/models/Owner.js';
 import { OwnerWalletTransaction } from '../admin/models/OwnerWalletTransaction.js';
 import { UserWallet } from '../user/models/UserWallet.js';
+import { User } from '../user/models/User.js';
 import { ApiError } from '../../../utils/ApiError.js';
 import { round2, seatCountOf, settleShares } from './poolingFareService.js';
 
@@ -57,8 +58,8 @@ export const listDriverTrips = async ({ vehicleId }) => {
   const [vehicle, bookings] = await Promise.all([
     PoolingVehicle.findById(vehicleId).lean(),
     PoolingBooking.find({ vehicle: vehicleId, travelDate: { $gte: since } })
-      .populate('user', 'name phone')
-      .populate('route')
+      .populate({ path: 'user', model: User, select: 'name phone' })
+      .populate({ path: 'route', model: PoolingRoute })
       .sort({ travelDate: -1, createdAt: 1 })
       .lean(),
   ]);
