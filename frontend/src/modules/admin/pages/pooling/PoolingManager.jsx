@@ -37,6 +37,7 @@ const createStop = (type = 'stop', sequence = 1) => ({
   stopType: type,
   sequence,
   etaMinutes: 0,
+  kmFromStart: 0,
 });
 
 const createSchedule = () => ({
@@ -60,6 +61,7 @@ const buildDefaultForm = () => ({
   stops: [createStop('stop', 1)],
   schedules: [createSchedule()],
   farePerSeat: 0,
+  routeDistanceKm: 0,
   maxSeatsPerBooking: 1,
   maxAdvanceBookingHours: 24,
   boardingBufferMinutes: 15,
@@ -194,6 +196,22 @@ const StopEditor = ({ title, helper, items, stopType, onChange, onAdd, onRemove,
                 />
               </div>
               <div>
+                <label className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-slate-400">Km from start</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0"
+                    value={item.kmFromStart ?? 0}
+                    onChange={(event) => onChange(item.id, 'kmFromStart', Number(event.target.value || 0))}
+                    className={`${getInputClasses(false)} pr-12`}
+                    placeholder="0"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Km</span>
+                  </div>
+                </div>
+              </div>
+              <div>
                 <label className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-slate-400">ETA (Min)</label>
                 <div className="relative">
                   <input
@@ -304,6 +322,7 @@ const PoolingManager = ({ mode: propMode }) => {
                   ? clone(selected.schedules)
                   : [createSchedule()],
               farePerSeat: Number(selected.farePerSeat || 0),
+              routeDistanceKm: Number(selected.routeDistanceKm || 0),
               maxSeatsPerBooking: Number(selected.maxSeatsPerBooking || 1),
               maxAdvanceBookingHours: Number(selected.maxAdvanceBookingHours || 24),
               boardingBufferMinutes: Number(selected.boardingBufferMinutes || 15),
@@ -1192,6 +1211,20 @@ const PoolingManager = ({ mode: propMode }) => {
                 </p>
 
                 <div className="mt-4 space-y-4">
+                  <div>
+                    <label className={labelClass}>Route distance (km)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.routeDistanceKm}
+                      onChange={(event) => updateForm('routeDistanceKm', Number(event.target.value || 0))}
+                      className={inputClass}
+                      placeholder="100"
+                    />
+                    <p className="mt-1 text-[11px] font-medium text-slate-500">
+                      Set this and the "Km from start" of every stop to share the fare by distance: fare per seat × seats in the vehicle is the whole-vehicle fare, divided between riders by how far each travels. Leave 0 to charge a flat fare per seat.
+                    </p>
+                  </div>
                   <div>
                     <label className={labelClass}>Fare Per Seat</label>
                     <input

@@ -298,6 +298,9 @@ export const BookingDetailsDrawer = ({ booking, onClose }) => {
                 <KV label="Seats booked">{pool.seatsBooked} ({(pool.selectedSeats || []).join(', ') || '--'})</KV>
                 <KV label="Fare per seat">{money(pool.farePerSeat)}</KV>
                 <KV label="Vehicle">{[pool.vehicleModel, pool.vehicleNumber].filter(Boolean).join(' · ')}</KV>
+                {pool.distancePriced ? <KV label="Km on this trip">{`${pool.boardKm} to ${pool.dropKm} km (${Math.max(0, pool.dropKm - pool.boardKm)} km of ${pool.routeKm})`}</KV> : null}
+                <KV label="Paid up front">{money(pool.paidUpFront)}</KV>
+                {pool.settled ? <KV label="Refunded to wallet">{money(pool.refundAmount)}</KV> : null}
                 <KV label="Commission split">{`Driver ${pool.driverCommissionPercentage}% · Owner ${pool.ownerCommissionPercentage}% · Tax ${pool.serviceTaxPercentage}%`}</KV>
               </div>
             </Section>

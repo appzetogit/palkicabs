@@ -482,6 +482,12 @@ export const getCurrentDriver = () => api.get("/drivers/me", withDriverAuth());
 export const getPoolingDriverBookings = () =>
   api.get("/drivers/pooling/bookings", withDriverAuth());
 
+export const getPoolingDriverTrips = () => api.get("/drivers/pooling/trips", withDriverAuth());
+export const startPoolingDriverTrip = (payload) => api.post("/drivers/pooling/trips/start", payload, withDriverAuth());
+export const completePoolingDriverTrip = (payload) => api.post("/drivers/pooling/trips/complete", payload, withDriverAuth());
+export const boardPoolingPassenger = (bookingId, otp) => api.post(`/drivers/pooling/bookings/${bookingId}/board`, { otp }, withDriverAuth());
+export const getPoolingDriverEarnings = () => api.get("/drivers/pooling/earnings", withDriverAuth());
+
 export const getDriverRideHistory = (params = {}) =>
   api.get("/rides", withDriverAuth({ params }));
 

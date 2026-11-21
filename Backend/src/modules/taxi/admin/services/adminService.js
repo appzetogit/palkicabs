@@ -1238,6 +1238,7 @@ const normalizePoolingStop = (stop = {}, index = 0, defaultType = 'stop') => ({
     : defaultType,
   sequence: Math.max(1, sanitizePoolingNumber(stop.sequence, index + 1)),
   etaMinutes: Math.max(0, sanitizePoolingNumber(stop.etaMinutes, 0)),
+  kmFromStart: Math.max(0, sanitizePoolingNumber(stop.kmFromStart, 0)),
   latitude:
     stop.latitude === '' || stop.latitude === null || stop.latitude === undefined
       ? null
@@ -1294,6 +1295,7 @@ const normalizePoolingPayload = (payload = {}, existing = {}) => ({
     : Array.isArray(existing.schedules)
       ? existing.schedules.map((item, index) => normalizePoolingSchedule(item, index))
       : [],
+  routeDistanceKm: Math.max(0, sanitizePoolingNumber(payload.routeDistanceKm, existing.routeDistanceKm || 0)),
   farePerSeat: Math.max(0, sanitizePoolingNumber(payload.farePerSeat, existing.farePerSeat || 0)),
   maxSeatsPerBooking: Math.max(
     1,
@@ -1430,6 +1432,7 @@ const serializePoolingRoute = (item = {}, vehicleMap = new Map()) => {
     schedules: Array.isArray(item.schedules)
       ? item.schedules.map((schedule, index) => normalizePoolingSchedule(schedule, index))
       : [],
+    routeDistanceKm: Number(item.routeDistanceKm || 0),
     farePerSeat: Number(item.farePerSeat || 0),
     maxSeatsPerBooking: Number(item.maxSeatsPerBooking || 1),
     maxAdvanceBookingHours: Number(item.maxAdvanceBookingHours || 24),
@@ -7288,11 +7291,12 @@ const toAdminPoolingRow = (b) => {
     vehicleImage: '',
     distanceKm: null,
     durationMin: null,
-    fare: num(b.fare),
+    fare: num(b.settledAt ? b.finalFare : b.fare),
     fareBreakdown: {
-      totalFare: num(b.fare), baseFare: num(b.baseFare), waitingCharge: 0, waitingMinutes: 0, tollCharges: 0, airportFee: 0, surgeMultiplier: null,
-      platformFee: num(b.serviceTaxAmount), promoCode: '', promoDiscount: 0,
-      commission: num(b.driverCommissionAmount) + num(b.ownerCommissionAmount), driverEarnings: Math.max(0, num(b.baseFare) - num(b.driverCommissionAmount) - num(b.ownerCommissionAmount)),
+      totalFare: num(b.settledAt ? b.finalFare : b.fare), baseFare: num(b.settledAt ? b.finalBaseFare : b.baseFare), waitingCharge: 0, waitingMinutes: 0, tollCharges: 0, airportFee: 0, surgeMultiplier: null,
+      platformFee: num(b.settledAt ? b.finalTaxAmount : b.serviceTaxAmount), promoCode: '', promoDiscount: 0,
+      commission: num(b.platformCommissionAmount) + num(b.ownerShareAmount) || (num(b.driverCommissionAmount) + num(b.ownerCommissionAmount)),
+      driverEarnings: b.settledAt ? num(b.driverEarningAmount) : Math.max(0, num(b.baseFare) - num(b.driverCommissionAmount) - num(b.ownerCommissionAmount)),
     },
     timeline: { requestedAt: b.createdAt, acceptedAt: null, arrivedAt: null, startedAt: null, completedAt: status === 'completed' ? b.updatedAt : null, cancelledAt: status === 'cancelled' || status === 'no_show' ? b.updatedAt : null },
     cancellation: status === 'cancelled' || status === 'no_show' ? { by: status === 'no_show' ? 'rider (no show)' : '', reason: '' } : null,
@@ -7322,6 +7326,13 @@ const toAdminPoolingRow = (b) => {
       driverCommissionPercentage: num(b.driverCommissionPercentage),
       ownerCommissionPercentage: num(b.ownerCommissionPercentage),
       serviceTaxPercentage: num(b.serviceTaxPercentage),
+      distancePriced: Boolean(b.distancePriced),
+      boardKm: num(b.boardKm),
+      dropKm: num(b.dropKm),
+      routeKm: num(route.routeDistanceKm),
+      paidUpFront: num(b.fare),
+      refundAmount: num(b.refundAmount),
+      settled: Boolean(b.settledAt),
     },
   };
 };

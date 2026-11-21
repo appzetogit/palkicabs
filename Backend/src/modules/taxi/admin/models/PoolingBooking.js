@@ -106,9 +106,27 @@ const poolingBookingSchema = new mongoose.Schema(
     },
     bookingStatus: {
       type: String,
-      enum: ['confirmed', 'cancelled', 'completed', 'no_show'],
+      enum: ['confirmed', 'boarded', 'cancelled', 'completed', 'no_show'],
       default: 'confirmed',
     },
+    // Where on the route the rider gets on / off (km from the first stop).
+    boardKm: { type: Number, default: 0 },
+    dropKm: { type: Number, default: 0 },
+    distancePriced: { type: Boolean, default: false },
+    // `fare` is what was charged up front: the maximum, as if the rider were alone on their stretch.
+    // After the trip the real share is worked out and the difference goes back to the rider.
+    finalBaseFare: { type: Number, default: null },
+    finalTaxAmount: { type: Number, default: null },
+    finalFare: { type: Number, default: null },
+    refundAmount: { type: Number, default: 0 },
+    refundTo: { type: String, default: '' },
+    platformCommissionAmount: { type: Number, default: 0 },
+    ownerShareAmount: { type: Number, default: 0 },
+    driverEarningAmount: { type: Number, default: 0 },
+    boardedAt: { type: Date, default: null },
+    settledAt: { type: Date, default: null },
+    cancelledAt: { type: Date, default: null },
+    cancelledBy: { type: String, default: '' },
     travelDate: {
       type: Date,
       required: true,

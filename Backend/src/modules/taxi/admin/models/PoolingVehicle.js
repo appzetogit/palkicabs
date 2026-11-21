@@ -83,6 +83,9 @@ const poolingVehicleSchema = new mongoose.Schema(
       enum: ['pending', 'active', 'inactive', 'maintenance'],
       default: 'active',
     },
+    // Earnings credited when a trip is settled (driver's share; owner's share goes to the owner wallet).
+    walletBalance: { type: Number, default: 0 },
+    totalEarnings: { type: Number, default: 0 },
     poolingEnabled: {
       type: Boolean,
       default: true,

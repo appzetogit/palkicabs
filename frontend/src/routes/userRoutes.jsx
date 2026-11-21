@@ -57,6 +57,7 @@ import {
   SupportTicketDetail,
   SupportTickets,
   UserNotifications,
+  UserPoolingBookingDetail,
   UserPoolingConfirm,
   UserPoolingHome,
   UserPoolingList,
@@ -112,6 +113,7 @@ const userRoutes = (
       <Route path="/taxi/user/pooling/list" element={<UserPoolingList />} />
       <Route path="/taxi/user/pooling/seats/:id" element={<UserPoolingSeats />} />
       <Route path="/taxi/user/pooling/confirm" element={<UserPoolingConfirm />} />
+      <Route path="/taxi/user/pooling/booking/:id" element={<UserPoolingBookingDetail />} />
       {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/rental" element={<BikeRentalHome />} /> */}
       {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/rental/vehicle" element={<RentalVehicleDetail />} /> */}
       {/* HIDDEN (bus/rental/spiritual): <Route path="/taxi/user/rental/schedule" element={<RentalSchedule />} /> */}

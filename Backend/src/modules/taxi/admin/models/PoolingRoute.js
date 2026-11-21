@@ -37,6 +37,12 @@ const poolingStopSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    // Km from the first stop of the route; the fare is shared by distance (see poolingFareService).
+    kmFromStart: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     latitude: {
       type: Number,
       default: null,
@@ -131,6 +137,12 @@ const poolingRouteSchema = new mongoose.Schema(
     schedules: {
       type: [poolingScheduleSchema],
       default: [],
+    },
+    // Whole route length in km. 0 = distance pricing off (flat farePerSeat per seat).
+    routeDistanceKm: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
     farePerSeat: {
       type: Number,

@@ -150,8 +150,8 @@ const PoolingCommissionManager = () => {
               <p className="text-sm font-black text-slate-700">Capacity</p>
             </div>
             <div className="grid grid-cols-4 gap-3 text-sm font-black text-slate-700">
-              <p>Driver %</p>
-              <p>Owner %</p>
+              <p>PALKI commission %</p>
+              <p>Owner share % (of the rest)</p>
               <p>Tax %</p>
               <p className="text-right lg:text-left">Action</p>
             </div>
@@ -218,7 +218,7 @@ const PoolingCommissionManager = () => {
 
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                       <div>
-                        <p className="mb-2 text-[11px] font-black text-slate-500 lg:hidden">Driver %</p>
+                        <p className="mb-2 text-[11px] font-black text-slate-500 lg:hidden">PALKI commission %</p>
                         <div className="relative">
                           <Percent size={14} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                           <input
@@ -234,7 +234,7 @@ const PoolingCommissionManager = () => {
                       </div>
 
                       <div>
-                        <p className="mb-2 text-[11px] font-black text-slate-500 lg:hidden">Owner %</p>
+                        <p className="mb-2 text-[11px] font-black text-slate-500 lg:hidden">Owner share % (of the rest)</p>
                         <div className="relative">
                           <Percent size={14} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                           <input

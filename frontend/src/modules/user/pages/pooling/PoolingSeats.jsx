@@ -21,6 +21,7 @@ import toast from 'react-hot-toast';
 
 // Asset Imports
 import taxiImg from '../../../../assets/3d images/AutoCab/taxi.png';
+import PoolingFareCard from './PoolingFareCard';
 
 const SEAT_LEGEND = [
   { key: 'available', label: 'Available', color: 'bg-white border-slate-200 text-slate-400' },
@@ -53,10 +54,48 @@ const PoolingSeats = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [bookedSeatIds, setBookedSeatIds] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pickupId, setPickupId] = useState('');
+  const [dropId, setDropId] = useState('');
+  const [quote, setQuote] = useState(null);
+  const [quoteError, setQuoteError] = useState('');
+  const [quoting, setQuoting] = useState(false);
 
   useEffect(() => {
     fetchRouteDetails();
   }, [id, travelDate]);
+
+  const activeSchedule = () => {
+    const list = Array.isArray(route?.schedules) ? route.schedules : [];
+    return list.find((item) => String(item?.status || 'active') === 'active') || list[0] || null;
+  };
+
+  // Live fare: re-quoted whenever the seats or the boarding / drop point change.
+  useEffect(() => {
+    const schedule = activeSchedule();
+    if (!route?._id || !selectedVehicle?._id || !schedule?.id || !travelDate || !pickupId || !dropId) return undefined;
+    let cancelled = false;
+    setQuoting(true);
+    const timer = setTimeout(async () => {
+      try {
+        const response = await userService.quotePoolingBooking({
+          routeId: route._id,
+          vehicleId: selectedVehicle._id,
+          scheduleId: schedule.id,
+          travelDate,
+          selectedSeats,
+          seats: Math.max(1, selectedSeats.length),
+          pickupStopId: pickupId,
+          dropStopId: dropId,
+        });
+        if (!cancelled) { setQuote(unwrapPayload(response)); setQuoteError(''); }
+      } catch (err) {
+        if (!cancelled) { setQuote(null); setQuoteError(err?.response?.data?.message || 'Could not calculate the fare'); }
+      } finally {
+        if (!cancelled) setQuoting(false);
+      }
+    }, 250);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [route?._id, selectedVehicle?._id, selectedSeats, pickupId, dropId, travelDate]);
 
   const fetchRouteDetails = async () => {
     setLoading(true);
@@ -64,6 +103,11 @@ const PoolingSeats = () => {
       const response = await userService.getPoolingRouteDetails(id, travelDate ? { travelDate } : undefined);
       const routeData = unwrapPayload(response);
       setRoute(routeData);
+      const kmOf = (stop) => Number(stop?.kmFromStart || 0);
+      const pickups = [...(routeData?.pickupPoints?.length ? routeData.pickupPoints : routeData?.stops || [])].sort((a, b) => kmOf(a) - kmOf(b));
+      const drops = [...(routeData?.dropPoints?.length ? routeData.dropPoints : routeData?.stops || [])].sort((a, b) => kmOf(a) - kmOf(b));
+      setPickupId(pickups[0]?.id || '');
+      setDropId(drops[drops.length - 1]?.id || '');
 
       const nextVehicle =
         (Array.isArray(routeData?.assignedVehicleTypeIds) && routeData.assignedVehicleTypeIds[0]) ||
@@ -131,14 +175,9 @@ const PoolingSeats = () => {
       return;
     }
 
-    const pickupStop =
-      (Array.isArray(route?.pickupPoints) && route.pickupPoints[0]) ||
-      (Array.isArray(route?.stops) && route.stops[0]) ||
-      null;
-    const dropStop =
-      (Array.isArray(route?.dropPoints) && route.dropPoints[0]) ||
-      (Array.isArray(route?.stops) && route.stops[route.stops.length - 1]) ||
-      null;
+    const allStops = [...(route?.pickupPoints || []), ...(route?.dropPoints || []), ...(route?.stops || [])];
+    const pickupStop = allStops.find((stop) => stop.id === pickupId) || null;
+    const dropStop = allStops.find((stop) => stop.id === dropId) || null;
     if (!pickupStop?.id || !dropStop?.id) {
       toast.error('Route pickup or drop point is missing');
       return;
@@ -154,6 +193,7 @@ const PoolingSeats = () => {
         schedule: selectedSchedule,
         pickupStop,
         dropStop,
+        quote,
       },
     });
   };
@@ -259,6 +299,35 @@ const PoolingSeats = () => {
             </div>
           </div>
         </motion.div>
+
+        {/* Boarding and drop point, and the live fare */}
+        <div className="mb-6 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
+          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Where do you get on and off?</p>
+          {(() => {
+            const kmOf = (stop) => Number(stop?.kmFromStart || 0);
+            const pickups = [...(route?.pickupPoints?.length ? route.pickupPoints : route?.stops || [])].sort((a, b) => kmOf(a) - kmOf(b));
+            const drops = [...(route?.dropPoints?.length ? route.dropPoints : route?.stops || [])].sort((a, b) => kmOf(a) - kmOf(b));
+            const pickedKm = kmOf(pickups.find((stop) => stop.id === pickupId));
+            const priced = Number(route?.routeDistanceKm || 0) > 0 || pickups.some((stop) => kmOf(stop) > 0);
+            const label = (stop) => `${stop.name || stop.address}${priced ? ` · ${kmOf(stop)} km` : ''}`;
+            return (
+              <div className="grid grid-cols-1 gap-3">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Pickup
+                  <select value={pickupId} onChange={(e) => { setPickupId(e.target.value); setSelectedSeats([]); }} className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-900 outline-none">
+                    {pickups.map((stop) => <option key={stop.id} value={stop.id}>{label(stop)}</option>)}
+                  </select>
+                </label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Drop
+                  <select value={dropId} onChange={(e) => setDropId(e.target.value)} className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-900 outline-none">
+                    {drops.filter((stop) => !priced || kmOf(stop) > pickedKm).map((stop) => <option key={stop.id} value={stop.id}>{label(stop)}</option>)}
+                  </select>
+                </label>
+              </div>
+            );
+          })()}
+        </div>
+
+        <PoolingFareCard quote={quote} loading={quoting} error={quoteError} />
 
         <div className="mb-10 flex flex-col items-center">
           <p className="mb-6 text-[11px] font-black uppercase tracking-[0.25em] text-slate-400">Select your preferred seat</p>
@@ -428,9 +497,9 @@ const PoolingSeats = () => {
               >
                 <div className="flex items-center justify-between pl-6 pr-2 py-2">
                   <div>
-                    <p className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-400">Total Fare</p>
+                    <p className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-400">You pay now (maximum)</p>
                     <div className="flex items-baseline gap-2 mt-0.5">
-                      <span className="text-2xl font-black text-white">₹{fareBreakdown.totalFare}</span>
+                      <span className="text-2xl font-black text-white">₹{quote?.maxTotal ?? fareBreakdown.totalFare}</span>
                       <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                         ({selectedSeats.length} {selectedSeats.length === 1 ? 'Seat' : 'Seats'})
                       </span>

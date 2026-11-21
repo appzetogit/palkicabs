@@ -8,6 +8,13 @@ import { asyncHandler } from "../../../../utils/asyncHandler.js";
 import { authenticate } from "../../middlewares/authMiddleware.js";
 import { getPendingRideOffers } from "../controllers/rideOfferController.js";
 import {
+  boardPoolingPassenger,
+  completePoolingDriverTrip,
+  getPoolingDriverEarnings,
+  getPoolingDriverTrips,
+  startPoolingDriverTrip,
+} from "../controllers/poolingDriverController.js";
+import {
   loginRateLimit,
   otpSendRateLimit,
   otpVerifyRateLimit,
@@ -199,6 +206,11 @@ driverRouter.get(
   authenticate(["pooling_driver"], { allowPending: true }),
   asyncHandler(getPoolingDriverBookings),
 );
+driverRouter.get("/pooling/trips", authenticate(["pooling_driver"]), asyncHandler(getPoolingDriverTrips));
+driverRouter.post("/pooling/trips/start", authenticate(["pooling_driver"]), asyncHandler(startPoolingDriverTrip));
+driverRouter.post("/pooling/trips/complete", authenticate(["pooling_driver"]), asyncHandler(completePoolingDriverTrip));
+driverRouter.post("/pooling/bookings/:id/board", authenticate(["pooling_driver"]), asyncHandler(boardPoolingPassenger));
+driverRouter.get("/pooling/earnings", authenticate(["pooling_driver"]), asyncHandler(getPoolingDriverEarnings));
 driverRouter.patch(
   "/me",
   authenticate(["driver", "owner"]),

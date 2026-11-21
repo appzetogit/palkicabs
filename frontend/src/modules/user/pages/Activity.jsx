@@ -609,7 +609,7 @@ const Activity = () => {
         state: toHistorySafeState(buildRentalActivityState(item.booking)),
       });
     } else if (item.type === 'pooling') {
-      navigate(`${routePrefix}/pooling`);
+      navigate(`${routePrefix}/pooling/booking/${item.id}`);
     } else if (item.type === 'parcel') {
       navigate(`${routePrefix}/parcel/detail/${item.id}`);
     } else {

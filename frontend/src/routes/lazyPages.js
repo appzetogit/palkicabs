@@ -71,6 +71,7 @@ export const UserPoolingHome = lazy(() => import('../modules/user/pages/pooling/
 export const UserPoolingList = lazy(() => import('../modules/user/pages/pooling/PoolingList'));
 export const UserPoolingSeats = lazy(() => import('../modules/user/pages/pooling/PoolingSeats'));
 export const UserPoolingConfirm = lazy(() => import('../modules/user/pages/pooling/PoolingConfirm'));
+export const UserPoolingBookingDetail = lazy(() => import('../modules/user/pages/pooling/PoolingBookingDetail'));
 export const ProfileSettings = lazy(() => import('../modules/user/pages/profile/ProfileSettings'));
 export const PaymentSettings = lazy(() => import('../modules/user/pages/profile/PaymentSettings'));
 export const AddressSettings = lazy(() => import('../modules/user/pages/profile/AddressSettings'));

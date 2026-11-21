@@ -183,6 +183,9 @@ export const getPoolingBookings = asyncHandler(async (req, res) => {
 
 export const updatePoolingBookingStatus = asyncHandler(async (req, res) => {
   const { status } = req.body;
+  if (!['confirmed', 'boarded', 'cancelled', 'completed', 'no_show'].includes(String(status || ''))) {
+    throw new ApiError(400, 'Invalid booking status');
+  }
   const booking = await PoolingBooking.findByIdAndUpdate(
     req.params.id,
     { bookingStatus: status },

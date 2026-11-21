@@ -26,6 +26,7 @@ import { schedulePoolingBookingReminders } from '../../utils/upcomingRideReminde
 
 // Asset Imports
 import taxiImg from '../../../../assets/3d images/AutoCab/taxi.png';
+import PoolingFareCard from './PoolingFareCard';
 
 const loadRazorpayScript = () =>
   new Promise((resolve) => {
@@ -85,7 +86,7 @@ const formatDateTime = (dateValue, scheduleLabel = '') => {
 const PoolingConfirm = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { route, vehicle, selectedSeats, totalFare, fareBreakdown: routeFareBreakdown, travelDate, schedule, pickupStop, dropStop } = location.state || {};
+  const { route, vehicle, selectedSeats, totalFare, fareBreakdown: routeFareBreakdown, travelDate, schedule, pickupStop, dropStop, quote } = location.state || {};
 
   const [isBooking, setIsBooking] = useState(false);
   const [isBooked, setIsBooked] = useState(false);
@@ -217,7 +218,9 @@ const PoolingConfirm = () => {
   };
 
   const vehicleImage = (vehicle.images && vehicle.images.length > 0) ? vehicle.images[0] : taxiImg;
-  const fareBreakdown = routeFareBreakdown || computePoolingFareBreakdown(route, vehicle, selectedSeats);
+  const fareBreakdown = quote
+    ? { baseFare: quote.maxBaseFare, serviceTaxPercentage: quote.taxPercentage, serviceTaxAmount: quote.maxTaxAmount, totalFare: quote.maxTotal }
+    : (routeFareBreakdown || computePoolingFareBreakdown(route, vehicle, selectedSeats));
 
   return (
     <div className="mx-auto min-h-screen max-w-lg bg-slate-50 pb-32 font-sans selection:bg-indigo-100">
@@ -270,6 +273,9 @@ const PoolingConfirm = () => {
                   >
                     <p className="text-[10px] font-black uppercase tracking-widest text-emerald-100">Booking ID</p>
                     <p className="mt-1 font-mono text-sm font-black">{confirmedBooking?.bookingId?.slice(-8).toUpperCase() || 'TX-8291'}</p>
+                    {confirmedBooking?.boardingOtp ? (
+                      <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-emerald-100">Boarding OTP <span className="ml-1 font-mono text-base tracking-[0.25em] text-white">{confirmedBooking.boardingOtp}</span></p>
+                    ) : null}
                   </motion.div>
                 </div>
               </div>
@@ -526,6 +532,8 @@ const PoolingConfirm = () => {
                 </div>
               </motion.div>
 
+              <PoolingFareCard quote={quote} />
+
               {/* Fare Breakdown Card */}
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
@@ -560,7 +568,7 @@ const PoolingConfirm = () => {
                   
                   <div className="mt-8 flex items-end justify-between border-t border-slate-50 pt-8">
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Amount Payable</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Amount Payable now (maximum)</p>
                       <p className="mt-1 text-4xl font-black tracking-tight text-slate-900">₹{fareBreakdown.totalFare}</p>
                     </div>
                     <div className="mb-1">

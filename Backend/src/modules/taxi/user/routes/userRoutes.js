@@ -75,7 +75,10 @@ import {
   createPoolingBookingOrder,
   verifyPoolingBookingPayment,
   createPoolingBooking,
-  getMyPoolingBookings
+  getMyPoolingBookings,
+  getMyPoolingBooking,
+  quotePoolingBooking,
+  cancelMyPoolingBooking,
 } from '../controllers/poolingController.js';
 import { getAppBootstrap, getAppModules, getGeneralSettingsCategory, getGoodsTypes, getPublicRentalVehicleCatalog, getPublicVehicleTypeCatalog, getPublicLandingContent, getPublicLegalContent, submitWebsiteEnquiry } from '../../admin/controllers/adminController.js';
 import { getPublicCancellationReasons } from '../../admin/controllers/cancellationReasonController.js';
@@ -183,3 +186,6 @@ userRouter.post('/pooling/bookings/order', authenticate(['user']), paymentOrderR
 userRouter.post('/pooling/bookings/verify', authenticate(['user']), paymentOrderRateLimit, asyncHandler(verifyPoolingBookingPayment));
 userRouter.post('/pooling/bookings', authenticate(['user']), asyncHandler(createPoolingBooking));
 userRouter.get('/pooling/bookings', authenticate(['user']), asyncHandler(getMyPoolingBookings));
+userRouter.get('/pooling/bookings/:id', authenticate(['user']), asyncHandler(getMyPoolingBooking));
+userRouter.patch('/pooling/bookings/:id/cancel', authenticate(['user']), asyncHandler(cancelMyPoolingBooking));
+userRouter.post('/pooling/quote', authenticate(['user']), asyncHandler(quotePoolingBooking));

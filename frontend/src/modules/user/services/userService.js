@@ -93,6 +93,18 @@ export const userService = {
     const response = await api.post('/users/pooling/bookings', payload);
     return response;
   },
+  getPoolingBooking: async (id) => {
+    const response = await api.get(`/users/pooling/bookings/${id}`);
+    return response;
+  },
+  quotePoolingBooking: async (payload) => {
+    const response = await api.post('/users/pooling/quote', payload);
+    return response;
+  },
+  cancelPoolingBooking: async (id) => {
+    const response = await api.patch(`/users/pooling/bookings/${id}/cancel`);
+    return response;
+  },
   getMyPoolingBookings: async () => {
     const response = await api.get('/users/pooling/bookings');
     return response;
