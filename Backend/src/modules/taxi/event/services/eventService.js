@@ -244,7 +244,7 @@ export const paymentDue = (booking) => {
   const advancePaid = paidAmount(booking, 'advance');
   const balancePaid = paidAmount(booking, 'balance');
   const advanceDue = round2(booking.pricing.advanceAmount - advancePaid);
-  const remaining = round2(booking.pricing.total - advancePaid - balancePaid);
+  const remaining = round2(booking.pricing.total - advancePaid - balancePaid - paidAmount(booking, 'extra'));
   const day = startOfDayIST(booking.startAt).getTime();
   if (booking.status === 'assigned' && advanceDue > 0) return { stage: 'advance', amount: advanceDue, canPay: true };
   if (booking.status === 'confirmed' && remaining > 0) return { stage: 'balance', amount: remaining, canPay: Date.now() >= day, payFrom: new Date(day) };
