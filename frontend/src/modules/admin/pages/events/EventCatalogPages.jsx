@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
-import { Badge, Empty, Field, Modal, Shell, Spinner, Table, act, btnDanger, btnGhost, btnPrimary, call, inputCls, useLoad } from './eventUi';
+import { Badge, Empty, ImageUpload, Field, Modal, Shell, Spinner, Table, act, btnDanger, btnGhost, btnPrimary, call, inputCls, useLoad } from './eventUi';
 
 /** One editor for the two small lists: event types and vehicle categories. */
 const CatalogPage = ({ title, subtitle, url, noun, columns, fields, blank, extraCell }) => {
@@ -43,7 +43,8 @@ const CatalogPage = ({ title, subtitle, url, noun, columns, fields, blank, extra
           <div className="space-y-4">
             {fields.map(([key, label, type, hint]) => (
               <Field key={key} label={label} hint={hint}>
-                {type === 'textarea' ? <textarea className={inputCls} rows={3} value={edit[key] ?? ''} onChange={(e) => setEdit({ ...edit, [key]: e.target.value })} />
+                {type === 'image' ? <ImageUpload value={edit[key] ? [edit[key]] : []} onChange={(v) => setEdit({ ...edit, [key]: v[0] || '' })} folder="event-catalog" />
+                  : type === 'textarea' ? <textarea className={inputCls} rows={3} value={edit[key] ?? ''} onChange={(e) => setEdit({ ...edit, [key]: e.target.value })} />
                   : type === 'checkbox' ? <input type="checkbox" checked={Boolean(edit[key])} onChange={(e) => setEdit({ ...edit, [key]: e.target.checked })} />
                     : <input className={inputCls} type={type || 'text'} value={edit[key] ?? ''} onChange={(e) => setEdit({ ...edit, [key]: type === 'number' ? (e.target.value === '' ? '' : Number(e.target.value)) : e.target.value })} />}
               </Field>
@@ -62,7 +63,7 @@ export const EventTypesPage = () => (
     title="Event types" subtitle="What customers can hire vehicles for: a wedding, a corporate trip, a yatra..."
     url="/admin/events/types" noun="Event type" columns={['', 'Name', 'Advance %', 'Order']}
     blank={{ name: '', description: '', image: '', advancePercent: '', order: 0, active: true }}
-    fields={[['name', 'Name'], ['description', 'Description', 'textarea'], ['image', 'Image URL'], ['advancePercent', 'Advance % (blank = use the global setting)', 'number', 'Share of the total the customer pays online to confirm.'], ['order', 'Order', 'number'], ['active', 'Active', 'checkbox']]}
+    fields={[['name', 'Name'], ['description', 'Description', 'textarea'], ['image', 'Photo', 'image'], ['advancePercent', 'Advance % (blank = use the global setting)', 'number', 'Share of the total the customer pays online to confirm.'], ['order', 'Order', 'number'], ['active', 'Active', 'checkbox']]}
     extraCell={(r) => (<><td className="px-4 py-3"><Img src={r.image} /></td><td className="px-4 py-3"><p className="font-bold text-slate-900">{r.name}</p><p className="text-xs text-slate-400">{r.description}</p></td><td className="px-4 py-3">{r.advancePercent ?? <span className="text-slate-400">default</span>}</td><td className="px-4 py-3">{r.order}</td></>)}
   />
 );
@@ -72,7 +73,7 @@ export const EventCategoriesPage = () => (
     title="Vehicle categories" subtitle="SUV, Sedan, Tempo Traveller... Prices, fleet counts and availability are all per category."
     url="/admin/events/categories" noun="Vehicle category" columns={['', 'Name', 'Seats', 'Order']}
     blank={{ name: '', seats: 4, description: '', image: '', order: 0, active: true }}
-    fields={[['name', 'Name'], ['seats', 'Seats', 'number'], ['description', 'Description', 'textarea'], ['image', 'Image URL'], ['order', 'Order', 'number'], ['active', 'Active', 'checkbox']]}
+    fields={[['name', 'Name'], ['seats', 'Seats', 'number'], ['description', 'Description', 'textarea'], ['image', 'Photo', 'image'], ['order', 'Order', 'number'], ['active', 'Active', 'checkbox']]}
     extraCell={(r) => (<><td className="px-4 py-3"><Img src={r.image} /></td><td className="px-4 py-3"><p className="font-bold text-slate-900">{r.name}</p><p className="text-xs text-slate-400">{r.description}</p></td><td className="px-4 py-3">{r.seats}</td><td className="px-4 py-3">{r.order}</td></>)}
   />
 );

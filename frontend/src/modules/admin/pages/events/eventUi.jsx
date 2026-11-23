@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { Loader2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../../../shared/api/axiosInstance';
+import { uploadService } from '../../../../shared/services/uploadService';
 
 // ---- api ----------------------------------------------------------------------------------------
 const body = (r) => r?.data?.data ?? r?.data ?? r;
@@ -116,3 +117,46 @@ export const Shell = ({ title, subtitle, actions, children }) => (
     {children}
   </div>
 );
+
+// ---- photo picker: the admin picks a file, it is uploaded and the stored address is kept ----------------------------
+const fileToDataUrl = (file) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
+
+/** value: array of image addresses. max: how many photos are allowed. */
+export const ImageUpload = ({ value = [], onChange, max = 1, folder = 'events' }) => {
+  const [busy, setBusy] = useState(false);
+  const pick = async (e) => {
+    const files = Array.from(e.target.files || []).slice(0, Math.max(0, max - value.length));
+    e.target.value = '';
+    if (!files.length) return;
+    setBusy(true);
+    try {
+      const urls = [];
+      for (const f of files) {
+        if (!f.type.startsWith('image/')) throw new Error('Choose an image file');
+        if (f.size > 6 * 1024 * 1024) throw new Error('Each photo must be under 6 MB');
+        const out = await uploadService.uploadImage(await fileToDataUrl(f), folder);
+        const url = out?.url || out?.data?.url;
+        if (!url) throw new Error('Upload failed');
+        urls.push(url);
+      }
+      onChange([...value, ...urls]);
+    } catch (err) { toast.error(errorOf(err, 'Photo upload failed')); }
+    setBusy(false);
+  };
+  return (
+    <div className="flex flex-wrap gap-2">
+      {value.map((url, i) => (
+        <div key={url} className="relative">
+          <img src={url} alt="" className="h-20 w-28 rounded-lg border border-slate-200 object-cover" />
+          <button type="button" onClick={() => onChange(value.filter((_, j) => j !== i))} className="absolute -right-1.5 -top-1.5 rounded-full bg-rose-600 p-0.5 text-white" aria-label="Remove photo"><X size={12} /></button>
+        </div>
+      ))}
+      {value.length < max ? (
+        <label className="flex h-20 w-28 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-slate-300 text-[11px] font-bold text-slate-500 hover:bg-slate-50">
+          {busy ? <Loader2 size={16} className="animate-spin" /> : <><span className="text-lg leading-none">+</span>Add photo</>}
+          <input type="file" accept="image/*" multiple={max > 1} className="hidden" disabled={busy} onChange={pick} />
+        </label>
+      ) : null}
+    </div>
+  );
+};

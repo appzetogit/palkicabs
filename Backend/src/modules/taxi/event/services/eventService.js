@@ -4,11 +4,20 @@ import { ApiError } from '../../../../utils/ApiError.js';
 import { Zone } from '../../driver/models/Zone.js';
 import { resolveConfiguredGatewayCredentials } from '../../services/paymentGatewayService.js';
 import { resolveRouteCached } from '../../services/routeService.js';
+import { sendPushNotificationToEntities } from '../../services/pushNotificationService.js';
 import {
   EventBooking, EventSettings, EventType, EventVehicle, EventVehicleCategory, EventPricing,
   EventWallet, EventWalletTransaction, EventWithdrawal,
 } from '../models/eventModels.js';
 import { priceBooking, round2, splitVehicleAmount, straightLineKm } from './eventFareService.js';
+
+/** A push message to riders / drivers. Never lets a failed push break a booking. */
+const notify = ({ userIds = [], driverIds = [], title, body, bookingId }) => {
+  const ids = (list) => [...new Set(list.map(String).filter(Boolean))];
+  if (!ids(userIds).length && !ids(driverIds).length) return;
+  sendPushNotificationToEntities({ userIds: ids(userIds), driverIds: ids(driverIds), title, body, data: { type: 'event_booking', bookingId: String(bookingId || '') } }).catch(() => {});
+};
+const driversOf = (booking) => booking.assignments.filter((a) => a.driverId).map((a) => a.driverId);
 
 const COMMITTED = ['requested', 'assigned', 'confirmed', 'ongoing']; // these hold vehicles
 const HOLDING = ['assigned', 'confirmed', 'ongoing']; // these hold specific vehicles
@@ -210,6 +219,8 @@ export const assignVehicles = async (bookingId, vehicleIds = []) => {
   });
   if (booking.status === 'requested') { booking.status = 'assigned'; booking.assignedAt = new Date(); }
   await booking.save();
+  notify({ userIds: [booking.userId], title: 'Vehicles ready for your event', body: `${booking.code}: pay the advance to confirm your booking.`, bookingId: booking._id });
+  notify({ driverIds: driversOf(booking), title: 'New event job', body: `${booking.code}: your vehicle was picked for an event. Open Event Bookings to accept.`, bookingId: booking._id });
   return booking;
 };
 
@@ -280,6 +291,10 @@ export const verifyPayment = async (booking, userId, { orderId, paymentId, signa
     { returnDocument: 'after' },
   );
   if (!updated) throw new ApiError(409, 'This booking was already updated');
+  if (to === 'confirmed') {
+    notify({ userIds: [updated.userId], title: 'Event booking confirmed', body: `${updated.code} is confirmed. The balance is payable on the event day.`, bookingId: updated._id });
+    notify({ driverIds: driversOf(updated), title: 'Event confirmed', body: `${updated.code} is confirmed for ${new Date(updated.startAt).toLocaleDateString('en-IN')}.`, bookingId: updated._id });
+  }
   return updated;
 };
 
@@ -319,6 +334,7 @@ export const cancelBooking = async (bookingId, { by, reason = '', userId = null 
   );
   if (!claimed) throw new ApiError(409, 'Booking was already updated');
   const result = await refundOnline(claimed, refund);
+  notify({ userIds: by === 'admin' ? [claimed.userId] : [], driverIds: driversOf(claimed), title: 'Event booking cancelled', body: `${claimed.code} was cancelled.`, bookingId: claimed._id });
   return { booking: claimed, refundDue: refund, refunded: result.refunded };
 };
 
@@ -329,6 +345,7 @@ export const rejectBooking = async (bookingId, reason = '') => {
     { returnDocument: 'after' },
   );
   if (!booking) throw new ApiError(409, 'Only an unpaid request can be rejected - cancel a paid booking instead');
+  notify({ userIds: [booking.userId], title: 'Event request update', body: `${booking.code}: we could not arrange vehicles for these dates.`, bookingId: booking._id });
   return booking;
 };
 
@@ -376,6 +393,8 @@ export const completeBooking = async (bookingId) => {
     const marked = await EventBooking.updateOne({ _id: claimed._id, 'assignments._id': a._id, 'assignments.settledAt': null }, { $set: { 'assignments.$.settledAt': new Date() } });
     if (marked.modifiedCount) await creditEventWallet(a.driverId, a.driverShare, { bookingId: claimed._id, note: `${claimed.code} - ${a.vehicleNumber}` });
   }
+  notify({ userIds: [claimed.userId], title: 'Event completed', body: `${claimed.code} is completed. Thank you for choosing PALKI.`, bookingId: claimed._id });
+  notify({ driverIds: claimed.assignments.filter((a) => a.ownerType === 'driver').map((a) => a.driverId), title: 'Event earnings added', body: `${claimed.code}: your earnings were added to the event wallet.`, bookingId: claimed._id });
   return EventBooking.findById(claimed._id);
 };
 
@@ -406,6 +425,7 @@ export const requestWithdrawal = async (driverId, amount, bank = {}) => {
 export const settleWithdrawal = async (id, { pay, reference = '', note = '' }) => {
   const w = await EventWithdrawal.findOneAndUpdate({ _id: id, status: 'pending' }, { $set: { status: pay ? 'paid' : 'rejected', reference: clean(reference), adminNote: clean(note), processedAt: new Date() } }, { returnDocument: 'after' });
   if (!w) throw new ApiError(409, 'Withdrawal is not pending');
+  notify({ driverIds: [w.driverId], title: pay ? 'Withdrawal paid' : 'Withdrawal rejected', body: pay ? `₹${w.amount} was sent to your bank account.` : `₹${w.amount} was returned to your event wallet.` });
   if (pay) {
     await EventWallet.updateOne({ driverId: w.driverId }, { $inc: { totalWithdrawn: w.amount } });
     const wal = await EventWallet.findOne({ driverId: w.driverId }).lean();

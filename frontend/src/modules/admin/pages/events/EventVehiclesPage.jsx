@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { Badge, Empty, Field, Modal, Shell, Spinner, Table, act, btnDanger, btnGhost, btnPrimary, call, inputCls, useCategories, useLoad, useZones } from './eventUi';
+import { Badge, Empty, ImageUpload, Field, Modal, Shell, Spinner, Table, act, btnDanger, btnGhost, btnPrimary, call, inputCls, useCategories, useLoad, useZones } from './eventUi';
 
-const BLANK = { zoneId: '', categoryId: '', name: '', vehicleNumber: '', color: '', seats: 4, image: '', driverName: '', driverPhone: '' };
+const BLANK = { zoneId: '', categoryId: '', name: '', vehicleNumber: '', color: '', seats: 4, images: [], driverName: '', driverPhone: '' };
 
 const EventVehiclesPage = () => {
   const zones = useZones();
@@ -12,10 +12,10 @@ const EventVehiclesPage = () => {
   const [edit, setEdit] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  const open = (v) => setEdit(v ? { _id: v._id, zoneId: v.zoneId?._id, categoryId: v.categoryId?._id, name: v.name, vehicleNumber: v.vehicleNumber, color: v.color, seats: v.seats, image: v.images?.[0] || '', driverName: v.driverName, driverPhone: v.driverPhone, ownerType: v.ownerType } : { ...BLANK });
+  const open = (v) => setEdit(v ? { _id: v._id, zoneId: v.zoneId?._id, categoryId: v.categoryId?._id, name: v.name, vehicleNumber: v.vehicleNumber, color: v.color, seats: v.seats, images: v.images || [], driverName: v.driverName, driverPhone: v.driverPhone, ownerType: v.ownerType } : { ...BLANK });
   const save = async () => {
     setSaving(true);
-    const body = { ...edit, images: edit.image ? [edit.image] : [] };
+    const body = { ...edit };
     const ok = await act(() => (edit._id ? call('patch', `/admin/events/vehicles/${edit._id}`, body) : call('post', '/admin/events/vehicles', body)), 'Saved');
     setSaving(false);
     if (ok) { setEdit(null); reload(); }
@@ -72,7 +72,7 @@ const EventVehiclesPage = () => {
                 <Field label="Driver phone"><input className={inputCls} value={edit.driverPhone} onChange={set('driverPhone')} /></Field>
               </>
             ) : null}
-            <div className="sm:col-span-2"><Field label="Photo URL"><input className={inputCls} value={edit.image} onChange={set('image')} /></Field></div>
+            <div className="sm:col-span-2"><Field label="Photos (up to 4)"><ImageUpload value={edit.images || []} onChange={(v) => setEdit({ ...edit, images: v })} max={4} folder="event-vehicle" /></Field></div>
           </div>
         </Modal>
       ) : null}

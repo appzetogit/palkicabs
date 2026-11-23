@@ -51,7 +51,7 @@ const run = async () => {
 
   for (const [i, [name, description]] of TYPES.entries()) await EventType.findOneAndUpdate({ name }, { $set: { name, description, order: i + 1, active: true } }, opts);
   const cats = {};
-  for (const [i, [name, seats, image]] of CATEGORIES.entries()) cats[name] = await EventVehicleCategory.findOneAndUpdate({ name }, { $set: { name, seats, image, order: i + 1, active: true } }, opts);
+  for (const [i, [name, seats, image]] of CATEGORIES.entries()) cats[name] = await EventVehicleCategory.findOneAndUpdate({ name }, { $set: { name, seats, order: i + 1, active: true }, $setOnInsert: { image } }, opts);
   out.types = TYPES.length; out.categories = CATEGORIES.length;
 
   const zones = await Zone.find({ name: { $in: ['Indore', 'Uttar Pradesh'] } }).lean();
