@@ -78,6 +78,7 @@ const Detail = ({ id, onClose, onChanged }) => {
   const editable = ['requested', 'assigned'].includes(b.status);
   const allPicked = b.items.every((i) => (picked[String(i.categoryId)] || []).length === i.quantity);
   const ask = (msg) => window.prompt(msg);
+  const canAddCharge = ['assigned', 'confirmed', 'ongoing'].includes(b.status);
   const unbilled = (b.overtime || []).reduce((n, o) => n + (o.suggested || 0), 0);
   const running = b.assignments.some((a) => a.tripStartedAt && !a.tripEndedAt);
 
@@ -173,36 +174,50 @@ const Detail = ({ id, onClose, onChanged }) => {
         })}
       </div>
 
-      {(b.overtime || []).length ? (
-        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="mb-2 text-xs font-black uppercase tracking-wider text-amber-800">Real trip time and overtime</p>
-          <div className="space-y-2">
-            {b.overtime.map((o) => (
-              <div key={o.assignmentId} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white p-3 text-xs">
-                <div>
-                  <p className="font-black text-slate-800">{o.vehicle}</p>
-                  <p className="font-semibold text-slate-500">Ran {hoursText(o.actualHours)} · booked {hoursText(o.bookedHours)} · {o.allowedHours} h included{o.days > 1 ? ` · ${o.days} days` : ''}</p>
-                  <p className="font-semibold text-slate-500">Time charged at booking {rupees(o.alreadyCharged)} · real time costs {rupees(o.timeCharge)}{o.alreadyAdded ? ` · already added ${rupees(o.alreadyAdded)}` : ''}</p>
-                </div>
-                {o.suggested > 0 ? (
-                  <button type="button" className={btnPrimary} disabled={busy || b.status === 'completed'} onClick={() => run(() => call('post', `/admin/events/bookings/${id}/adjustments`, { label: `Extra time: ${o.vehicle} (${hoursText(o.actualHours)})`, amount: o.suggested, assignmentId: o.assignmentId }), 'Extra charge added, customer can pay it')}>Add {rupees(o.suggested)} charge</button>
-                ) : <span className="font-black text-emerald-600">Nothing extra</span>}
-              </div>
-            ))}
-          </div>
-          <p className="mt-2 text-[11px] font-semibold text-amber-800">A charge added here is sent to the customer to pay online. If the vehicle belongs to a driver, he earns his share of it (after commission) when you complete the event.</p>
-        </div>
-      ) : null}
-
-      {['assigned', 'confirmed', 'ongoing'].includes(b.status) ? (
+      {canAddCharge || (b.adjustments || []).length ? (
         <div className="mt-6 rounded-xl border border-slate-200 p-4">
-          <p className="mb-2 text-xs font-black uppercase tracking-wider text-slate-500">Add an extra charge (or a discount as a minus amount)</p>
-          <div className="flex flex-wrap gap-2">
-            <input className={`${inputCls} max-w-xs`} placeholder="Label, e.g. Parking and toll" value={charge.label} onChange={(e) => setCharge({ ...charge, label: e.target.value })} />
-            <input className={`${inputCls} max-w-[140px]`} type="number" placeholder="Amount ₹" value={charge.amount} onChange={(e) => setCharge({ ...charge, amount: e.target.value })} />
-            <button type="button" className={btnGhost} disabled={busy} onClick={() => run(() => call('post', `/admin/events/bookings/${id}/adjustments`, charge), 'Charge added').then(() => setCharge({ label: '', amount: '' }))}>Add</button>
-          </div>
-          {(b.adjustments || []).map((a, i) => <p key={i} className="mt-2 text-xs font-semibold text-slate-600">{a.label}: {rupees(a.amount)}</p>)}
+          <p className="mb-3 text-xs font-black uppercase tracking-wider text-slate-500">Extra charges</p>
+
+          {(b.adjustments || []).length ? (
+            <div className="mb-4 space-y-1">
+              {b.adjustments.map((a, i) => (
+                <div key={i} className="flex justify-between gap-3 text-xs font-semibold text-slate-700"><span>{a.label}</span><span className="font-black">{rupees(a.amount)}</span></div>
+              ))}
+            </div>
+          ) : null}
+
+          {(b.overtime || []).length ? (
+            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
+              <p className="mb-2 text-[11px] font-black uppercase tracking-wider text-amber-800">Extra time used (from the driver's start and end of trip)</p>
+              <div className="space-y-2">
+                {b.overtime.map((o) => (
+                  <div key={o.assignmentId} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white p-3 text-xs">
+                    <div>
+                      <p className="font-black text-slate-800">{o.vehicle}</p>
+                      <p className="font-semibold text-slate-500">Ran {hoursText(o.actualHours)} · booked {hoursText(o.bookedHours)} · {o.allowedHours} h included{o.days > 1 ? ` · ${o.days} days` : ''}</p>
+                      <p className="font-semibold text-slate-500">Time charged at booking {rupees(o.alreadyCharged)} · real time costs {rupees(o.timeCharge)}{o.alreadyAdded ? ` · already added ${rupees(o.alreadyAdded)}` : ''}</p>
+                    </div>
+                    {o.suggested > 0 ? (
+                      <button type="button" className={btnPrimary} disabled={busy || !canAddCharge} onClick={() => run(() => call('post', `/admin/events/bookings/${id}/adjustments`, { label: `Extra time: ${o.vehicle} (${hoursText(o.actualHours)})`, amount: o.suggested, assignmentId: o.assignmentId }), 'Extra time charge added, customer can pay it')}>Add {rupees(o.suggested)}</button>
+                    ) : <span className="font-black text-emerald-600">Nothing extra</span>}
+                  </div>
+                ))}
+              </div>
+              <p className="mt-2 text-[11px] font-semibold text-amber-800">For a driver's own vehicle, the driver earns his share of this (after commission) when you complete the event.</p>
+            </div>
+          ) : null}
+
+          {canAddCharge ? (
+            <>
+              <p className="mb-1 text-[11px] font-bold text-slate-500">Add any other charge: toll, parking, night halt, decoration. Use a minus amount for a discount (only before the balance is paid).</p>
+              <div className="flex flex-wrap gap-2">
+                <input className={`${inputCls} max-w-xs`} placeholder="Label, e.g. Parking and toll" value={charge.label} onChange={(e) => setCharge({ ...charge, label: e.target.value })} />
+                <input className={`${inputCls} max-w-[140px]`} type="number" placeholder="Amount ₹" value={charge.amount} onChange={(e) => setCharge({ ...charge, amount: e.target.value })} />
+                <button type="button" className={btnGhost} disabled={busy || !charge.label.trim() || !Number(charge.amount)} onClick={() => run(() => call('post', `/admin/events/bookings/${id}/adjustments`, charge), 'Charge added').then(() => setCharge({ label: '', amount: '' }))}>Add</button>
+              </div>
+              {!(b.overtime || []).length && ['confirmed', 'ongoing'].includes(b.status) ? <p className="mt-2 text-[11px] font-semibold text-slate-400">Extra time is worked out here automatically once the driver ends the trip.</p> : null}
+            </>
+          ) : null}
         </div>
       ) : null}
     </Modal>
