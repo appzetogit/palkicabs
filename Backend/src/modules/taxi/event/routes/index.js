@@ -49,6 +49,7 @@ eventRouter.post('/admin/events/bookings/:id/assign', a, admin.assign);
 eventRouter.post('/admin/events/bookings/:id/reject', a, admin.reject);
 eventRouter.post('/admin/events/bookings/:id/cancel', a, admin.cancel);
 eventRouter.post('/admin/events/bookings/:id/adjustments', a, admin.adjust);
+eventRouter.post('/admin/events/bookings/:id/assignments/:assignmentId/trip', a, admin.tripTimes);
 eventRouter.post('/admin/events/bookings/:id/complete', a, admin.complete);
 
 eventRouter.get('/admin/events/withdrawals', a, admin.listWithdrawals);
@@ -78,5 +79,7 @@ eventRouter.patch('/drivers/events/vehicles/:id', d, driver.updateVehicle);
 eventRouter.delete('/drivers/events/vehicles/:id', d, driver.deleteVehicle);
 eventRouter.get('/drivers/events/assignments', d, driver.listAssignments);
 eventRouter.post('/drivers/events/assignments/:assignmentId/respond', d, driver.respond);
+eventRouter.post('/drivers/events/assignments/:assignmentId/start', d, driver.trip('start'));
+eventRouter.post('/drivers/events/assignments/:assignmentId/end', d, driver.trip('end'));
 eventRouter.get('/drivers/events/earnings', d, driver.earnings);
 eventRouter.post('/drivers/events/withdrawals', d, driver.withdraw);

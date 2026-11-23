@@ -67,6 +67,8 @@ const EventBookingDetail = () => {
       <div className="space-y-4 p-4">
         {b.status === 'requested' ? <p className="rounded-2xl bg-amber-50 p-4 text-sm font-bold text-amber-800">We got your request. PALKI will assign vehicles and you can then pay the advance to confirm.</p> : null}
         {b.status === 'assigned' && due.stage === 'advance' ? <p className="rounded-2xl bg-indigo-50 p-4 text-sm font-bold text-indigo-800">Vehicles are ready for you. Pay {rupees(due.amount)} now to confirm the booking.</p> : null}
+        {due.stage === 'extra' ? <p className="rounded-2xl bg-amber-50 p-4 text-sm font-bold text-amber-800">Extra time was used on your event. Please pay the extra charge of {rupees(due.amount)}.</p> : null}
+        {b.status === 'ongoing' && !due.stage ? <p className="rounded-2xl bg-sky-50 p-4 text-sm font-bold text-sky-800">Your event is on. Have a great time!</p> : null}
         {b.status === 'confirmed' && due.stage === 'balance' && !due.canPay ? <p className="rounded-2xl bg-emerald-50 p-4 text-sm font-bold text-emerald-800">Confirmed. The balance of {rupees(due.amount)} is payable from {when(due.payFrom)}.</p> : null}
         {b.status === 'rejected' || b.status === 'cancelled' ? <p className="rounded-2xl bg-rose-50 p-4 text-sm font-bold text-rose-700">{b.cancelReason || (b.status === 'rejected' ? 'PALKI could not arrange vehicles for these dates.' : 'This booking was cancelled.')}{b.refundAmount ? ` Refund: ${rupees(b.refundAmount)}.` : ''}</p> : null}
 
@@ -84,7 +86,7 @@ const EventBookingDetail = () => {
           <p className="text-sm font-black text-slate-900">Vehicles</p>
           {b.vehicles?.length ? b.vehicles.map((v, i) => (
             <div key={i} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 p-3">
-              <div className="min-w-0"><p className="truncate text-sm font-black text-slate-900">{v.vehicleName} · {v.vehicleNumber}</p><p className="text-xs font-semibold text-slate-500">{v.categoryName} · {v.driverName}</p></div>
+              <div className="min-w-0"><p className="truncate text-sm font-black text-slate-900">{v.vehicleName} · {v.vehicleNumber}</p><p className="text-xs font-semibold text-slate-500">{v.categoryName} · {v.driverName}</p>{v.tripStartedAt ? <p className="text-[11px] font-bold text-sky-600">Started {when(v.tripStartedAt)}{v.tripEndedAt ? ` · Ended ${when(v.tripEndedAt)}` : ' · on the trip'}</p> : null}</div>
               {v.driverPhone ? <a href={`tel:${v.driverPhone}`} className="rounded-full bg-slate-900 p-2 text-white" aria-label="Call driver"><Phone size={14} /></a> : null}
             </div>
           )) : b.items.map((i, k) => <Row key={k} label={`${i.categoryName} × ${i.quantity}`} value={rupees(i.lineTotal)} />)}

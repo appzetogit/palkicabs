@@ -30,6 +30,14 @@ const Jobs = () => {
   const load = useCallback(() => get('/drivers/events/assignments').then((d) => setRows(Array.isArray(d) ? d : [])).catch((e) => { toast.error(errMsg(e)); setRows([]); }), []);
   useEffect(() => { load(); }, [load]);
 
+  const trip = async (a, kind) => {
+    const sure = kind === 'start' ? 'Start the trip now? The time is recorded and the customer is told.' : 'End the trip now? The time is recorded and used to work out any extra time charge.';
+    if (!window.confirm(sure)) return;
+    setBusy(a.assignmentId);
+    try { await send('post', `/drivers/events/assignments/${a.assignmentId}/${kind}`); toast.success(kind === 'start' ? 'Trip started' : 'Trip ended'); await load(); } catch (e) { toast.error(errMsg(e)); }
+    setBusy('');
+  };
+
   const respond = async (a, accept) => {
     if (!accept && !window.confirm('Decline this event? The admin will assign another vehicle.')) return;
     setBusy(a.assignmentId);
@@ -55,6 +63,14 @@ const Jobs = () => {
       <div className="flex items-center justify-between border-t border-slate-50 pt-3">
         <p className="text-sm font-black text-slate-900">You earn {rupees(a.earning)} {a.settled ? <span className="text-emerald-600">· added to wallet</span> : null}</p>
       </div>
+      {a.tripStartedAt ? (
+        <p className="rounded-xl bg-sky-50 p-3 text-xs font-bold text-sky-800">
+          Started {when(a.tripStartedAt)}{a.tripEndedAt ? ` · Ended ${when(a.tripEndedAt)} · ${((new Date(a.tripEndedAt) - new Date(a.tripStartedAt)) / 3600000).toFixed(1)} h` : ' · running'}
+        </p>
+      ) : null}
+      {a.canStart ? <button type="button" disabled={busy === a.assignmentId} onClick={() => trip(a, 'start')} className="w-full rounded-xl bg-emerald-600 py-3 text-sm font-black text-white disabled:opacity-40">Start trip</button> : null}
+      {a.canEnd ? <button type="button" disabled={busy === a.assignmentId} onClick={() => trip(a, 'end')} className="w-full rounded-xl bg-rose-600 py-3 text-sm font-black text-white disabled:opacity-40">End trip</button> : null}
+      {a.driverStatus === 'accepted' && ['confirmed', 'ongoing'].includes(a.bookingStatus) && !a.tripStartedAt && !a.canStart ? <p className="text-xs font-semibold text-slate-500">You can start the trip on the day of the event.</p> : null}
       {a.driverStatus === 'pending' && ['assigned', 'confirmed'].includes(a.bookingStatus) ? (
         <div className="flex gap-3">
           <button type="button" disabled={busy === a.assignmentId} onClick={() => respond(a, false)} className="rounded-xl border border-rose-200 px-5 py-2.5 text-sm font-black text-rose-600 disabled:opacity-40">Decline</button>

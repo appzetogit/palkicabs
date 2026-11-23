@@ -54,6 +54,18 @@ export const priceOneVehicle = ({ pricing, distanceKm, startAt, endAt }) => {
   };
 };
 
+/**
+ * What the REAL trip time costs on top of what was already charged for the booked window.
+ * rules = { includedHours, extraDayIncludedHours, extraDayCharge, extraHourCharge }; booked = { extraDayAmount, overtimeAmount }.
+ */
+export const realTimeExtra = ({ rules, booked, startedAt, endedAt }) => {
+  const hours = Math.max(0, (new Date(endedAt) - new Date(startedAt)) / 3600000);
+  const t = timeUsage({ startAt: startedAt, endAt: endedAt, includedHours: rules.includedHours, extraDayIncludedHours: rules.extraDayIncludedHours });
+  const actual = round2((t.days - 1) * num(rules.extraDayCharge) + t.overtimeHours * num(rules.extraHourCharge));
+  const already = round2(num(booked.extraDayAmount) + num(booked.overtimeAmount));
+  return { actualHours: round2(hours), days: t.days, allowedHours: t.allowedHours, overtimeHours: t.overtimeHours, timeCharge: actual, alreadyCharged: already, extra: Math.max(0, round2(actual - already)) };
+};
+
 /** Whole booking. `lines` = [{ categoryId, categoryName, quantity, pricing }]. */
 export const priceBooking = ({ lines, distanceKm, startAt, endAt, advancePercent }) => {
   const items = [];
@@ -67,6 +79,8 @@ export const priceBooking = ({ lines, distanceKm, startAt, endAt, advancePercent
       categoryId: line.categoryId, categoryName: line.categoryName, quantity: qty,
       oneWayPrice: unit.oneWayPrice, returnPrice: unit.returnPrice, extraDayAmount: unit.extraDayAmount, overtimeAmount: unit.overtimeAmount,
       unitTotal: unit.unitTotal, lineTotal: round2(unit.unitTotal * qty), commissionPercent: num(line.pricing.commissionPercent),
+      includedHours: num(line.pricing.includedHours, 10), extraDayIncludedHours: num(line.pricing.extraDayIncludedHours, 10),
+      extraDayCharge: num(line.pricing.extraDayCharge), extraHourCharge: num(line.pricing.extraHourCharge),
     });
     tripTotal += (unit.oneWayPrice + unit.returnPrice) * qty;
     extraDays += unit.extraDayAmount * qty;

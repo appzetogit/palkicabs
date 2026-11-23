@@ -9,7 +9,7 @@ import {
 } from '../models/eventModels.js';
 import {
   addAdjustment, assignVehicles, cancelBooking, categoryAvailability, completeBooking, freeVehiclesFor,
-  getSettings, rejectBooking, settleWithdrawal, updateSettings,
+  getSettings, overtimeSuggestions, rejectBooking, settleWithdrawal, setTripTimes, updateSettings,
 } from '../services/eventService.js';
 
 const ok = (res, data, message) => res.json({ success: true, data, message });
@@ -195,13 +195,14 @@ export const getBooking = asyncHandler(async (req, res) => {
   const drivers = await Driver.find({ _id: { $in: driverIds } }).select('name phone').lean();
   const nameBy = Object.fromEntries(drivers.map((d) => [String(d._id), d]));
   for (const list of Object.values(candidates)) for (const v of list) if (v.driverId) { v.driverName = nameBy[String(v.driverId)]?.name || ''; v.driverPhone = nameBy[String(v.driverId)]?.phone || ''; }
-  ok(res, { ...b, availability, candidates });
+  ok(res, { ...b, availability, candidates, overtime: await overtimeSuggestions(b) });
 });
 
 export const assign = asyncHandler(async (req, res) => ok(res, await assignVehicles(req.params.id, req.body?.vehicleIds), 'Vehicles assigned'));
 export const reject = asyncHandler(async (req, res) => ok(res, await rejectBooking(req.params.id, req.body?.reason), 'Request rejected'));
 export const cancel = asyncHandler(async (req, res) => ok(res, await cancelBooking(req.params.id, { by: 'admin', reason: req.body?.reason }), 'Booking cancelled'));
 export const adjust = asyncHandler(async (req, res) => ok(res, await addAdjustment(req.params.id, req.body || {}), 'Charge added'));
+export const tripTimes = asyncHandler(async (req, res) => ok(res, await setTripTimes(req.params.id, req.params.assignmentId, req.body || {}), 'Trip times saved'));
 export const complete = asyncHandler(async (req, res) => ok(res, await completeBooking(req.params.id), 'Booking completed'));
 
 export const stats = asyncHandler(async (_req, res) => {

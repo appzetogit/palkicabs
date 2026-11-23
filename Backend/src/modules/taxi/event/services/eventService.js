@@ -9,7 +9,7 @@ import {
   EventBooking, EventSettings, EventType, EventVehicle, EventVehicleCategory, EventPricing,
   EventWallet, EventWalletTransaction, EventWithdrawal,
 } from '../models/eventModels.js';
-import { priceBooking, round2, splitVehicleAmount, straightLineKm } from './eventFareService.js';
+import { priceBooking, realTimeExtra, round2, splitVehicleAmount, straightLineKm } from './eventFareService.js';
 
 /** A push message to riders / drivers. Never lets a failed push break a booking. */
 const notify = ({ userIds = [], driverIds = [], title, body, bookingId }) => {
@@ -248,6 +248,8 @@ export const paymentDue = (booking) => {
   const day = startOfDayIST(booking.startAt).getTime();
   if (booking.status === 'assigned' && advanceDue > 0) return { stage: 'advance', amount: advanceDue, canPay: true };
   if (booking.status === 'confirmed' && remaining > 0) return { stage: 'balance', amount: remaining, canPay: Date.now() >= day, payFrom: new Date(day) };
+  // charges added after the balance was paid (real overtime), payable until the customer settles them
+  if (['ongoing', 'completed'].includes(booking.status) && remaining > 0) return { stage: 'extra', amount: remaining, canPay: true };
   return { stage: null, amount: 0, canPay: false };
 };
 
@@ -283,14 +285,19 @@ export const verifyPayment = async (booking, userId, { orderId, paymentId, signa
     throw new ApiError(400, 'Payment does not match this booking');
   }
 
-  const from = due.stage === 'advance' ? 'assigned' : 'confirmed';
-  const to = due.stage === 'advance' ? 'confirmed' : 'ongoing';
+  const from = due.stage === 'advance' ? ['assigned'] : due.stage === 'extra' ? ['ongoing', 'completed'] : ['confirmed'];
+  const to = due.stage === 'advance' ? 'confirmed' : due.stage === 'extra' ? booking.status : 'ongoing';
+  // advance and balance are paid once; extra charges can be paid more than once, each with its own order
+  const once = due.stage === 'extra' ? { 'payments.orderId': { $ne: orderId } } : { 'payments.stage': { $ne: due.stage } };
   const updated = await EventBooking.findOneAndUpdate(
-    { _id: booking._id, status: from, 'payments.stage': { $ne: due.stage } },
+    { _id: booking._id, status: { $in: from }, ...once },
     { $push: { payments: { stage: due.stage, amount: due.amount, orderId, paymentId, status: 'paid', paidAt: new Date() } }, $set: { status: to, ...(to === 'confirmed' ? { confirmedAt: new Date() } : {}) } },
     { returnDocument: 'after' },
   );
   if (!updated) throw new ApiError(409, 'This booking was already updated');
+  if (due.stage === 'extra') {
+    notify({ userIds: [updated.userId], title: 'Payment received', body: `${updated.code}: extra charges paid. Thank you.`, bookingId: updated._id });
+  }
   if (to === 'confirmed') {
     notify({ userIds: [updated.userId], title: 'Event booking confirmed', body: `${updated.code} is confirmed. The balance is payable on the event day.`, bookingId: updated._id });
     notify({ driverIds: driversOf(updated), title: 'Event confirmed', body: `${updated.code} is confirmed for ${new Date(updated.startAt).toLocaleDateString('en-IN')}.`, bookingId: updated._id });
@@ -319,6 +326,7 @@ export const cancelBooking = async (bookingId, { by, reason = '', userId = null 
   const booking = await EventBooking.findOne({ _id: bookingId, ...(userId ? { userId } : {}) });
   if (!booking) throw new ApiError(404, 'Booking not found');
   if (!['requested', 'assigned', 'confirmed'].includes(booking.status)) throw new ApiError(409, `A ${booking.status} booking cannot be cancelled`);
+  if (booking.assignments.some((a) => a.tripStartedAt)) throw new ApiError(409, 'The event has already started, so it cannot be cancelled');
 
   const settings = await getSettings();
   const paid = paidAmount(booking, 'advance') + paidAmount(booking, 'balance');
@@ -350,23 +358,36 @@ export const rejectBooking = async (bookingId, reason = '') => {
 };
 
 // ---- admin: adjustments and completion -----------------------------------------------------------------------
-export const addAdjustment = async (bookingId, { label, amount }) => {
+export const addAdjustment = async (bookingId, { label, amount, assignmentId = null }) => {
   const amt = round2(amount);
   if (!clean(label) || !Number.isFinite(amt) || amt === 0) throw new ApiError(400, 'A label and a non-zero amount are required');
   const booking = await EventBooking.findById(bookingId);
   if (!booking) throw new ApiError(404, 'Booking not found');
-  if (!['assigned', 'confirmed'].includes(booking.status)) throw new ApiError(409, 'Adjustments are allowed until the balance is paid');
-  booking.adjustments.push({ label: clean(label), amount: amt });
+  if (!['assigned', 'confirmed', 'ongoing'].includes(booking.status)) throw new ApiError(409, 'Charges can be added until the booking is completed');
+  const advancePaid = paidAmount(booking, 'advance');
+  const balancePaid = paidAmount(booking, 'balance');
+  if (balancePaid > 0 && amt < 0) throw new ApiError(409, 'A discount cannot be given after the balance is paid');
+  // a charge may be tied to one vehicle (its real overtime): a driver's own vehicle then earns from it too
+  let linked = null;
+  if (assignmentId) {
+    if (!isId(assignmentId) || !booking.assignments.id(assignmentId)) throw new ApiError(400, 'That vehicle is not part of this booking');
+    if (amt < 0) throw new ApiError(400, 'A vehicle-linked charge must be positive');
+    linked = assignmentId;
+  }
+  booking.adjustments.push({ label: clean(label), amount: amt, assignmentId: linked });
   const adj = round2(booking.adjustments.reduce((n, a) => n + a.amount, 0));
   const total = round2(booking.pricing.tripTotal + booking.pricing.extraDays + booking.pricing.overtime + adj);
   if (total <= 0) throw new ApiError(400, 'Total would not be positive');
   booking.pricing.adjustments = adj;
   booking.pricing.total = total;
-  const advancePaid = paidAmount(booking, 'advance');
   if (advancePaid === 0) booking.pricing.advanceAmount = round2((total * booking.pricing.advancePercent) / 100);
-  booking.pricing.balanceAmount = round2(total - Math.max(advancePaid, booking.pricing.advanceAmount));
+  // once the balance is paid it stays what was paid; anything added later is an "extra" payment
+  booking.pricing.balanceAmount = balancePaid > 0 ? balancePaid : round2(total - Math.max(advancePaid, booking.pricing.advanceAmount));
   booking.markModified('pricing');
   await booking.save();
+  if (booking.status === 'ongoing' && amt > 0) {
+    notify({ userIds: [booking.userId], title: 'Extra charge on your event', body: `${booking.code}: ${clean(label)} Rs ${amt}. Open the booking to pay.`, bookingId: booking._id });
+  }
   return booking;
 };
 
@@ -386,16 +407,96 @@ export const completeBooking = async (bookingId) => {
   if (!current) throw new ApiError(404, 'Booking not found');
   // fully prepaid bookings never go through "ongoing", so they may be completed from confirmed
   const prepaid = current.status === 'confirmed' && paymentDue(current).amount === 0;
+  if (current.assignments.some((a) => a.tripStartedAt && !a.tripEndedAt)) throw new ApiError(409, 'A trip is still running. Record its end time first.');
   const claimed = await EventBooking.findOneAndUpdate({ _id: bookingId, status: prepaid ? 'confirmed' : 'ongoing' }, { $set: { status: 'completed', completedAt: new Date() } }, { returnDocument: 'after' });
   if (!claimed) throw new ApiError(409, 'Only an ongoing booking (balance paid) can be completed');
   for (const a of claimed.assignments) {
-    if (a.settledAt || a.ownerType !== 'driver' || !a.driverId || a.driverShare <= 0) continue;
-    const marked = await EventBooking.updateOne({ _id: claimed._id, 'assignments._id': a._id, 'assignments.settledAt': null }, { $set: { 'assignments.$.settledAt': new Date() } });
-    if (marked.modifiedCount) await creditEventWallet(a.driverId, a.driverShare, { bookingId: claimed._id, note: `${claimed.code} - ${a.vehicleNumber}` });
+    if (a.settledAt || a.ownerType !== 'driver' || !a.driverId) continue;
+    // the real-overtime charges tied to this vehicle are split the same way as its fare
+    const linked = round2(claimed.adjustments.filter((x) => x.assignmentId && String(x.assignmentId) === String(a._id) && x.amount > 0).reduce((n, x) => n + x.amount, 0));
+    const commission = claimed.items.find((i) => String(i.categoryId) === String(a.categoryId))?.commissionPercent || 0;
+    const extraShare = linked > 0 ? splitVehicleAmount({ amount: linked, ownerType: 'driver', commissionPercent: commission }).driverShare : 0;
+    const credit = round2(a.driverShare + extraShare);
+    if (credit <= 0) continue;
+    const marked = await EventBooking.updateOne({ _id: claimed._id, 'assignments._id': a._id, 'assignments.settledAt': null }, { $set: { 'assignments.$.settledAt': new Date(), 'assignments.$.driverShare': credit } });
+    if (marked.modifiedCount) await creditEventWallet(a.driverId, credit, { bookingId: claimed._id, note: `${claimed.code} - ${a.vehicleNumber}` });
   }
   notify({ userIds: [claimed.userId], title: 'Event completed', body: `${claimed.code} is completed. Thank you for choosing PALKI.`, bookingId: claimed._id });
   notify({ driverIds: claimed.assignments.filter((a) => a.ownerType === 'driver').map((a) => a.driverId), title: 'Event earnings added', body: `${claimed.code}: your earnings were added to the event wallet.`, bookingId: claimed._id });
   return EventBooking.findById(claimed._id);
+};
+
+// ---- the real trip: start and end, recorded by the driver (or by the admin for a vehicle with no app) ----------------
+const tripFilter = (bookingId, assignmentId, extra = {}) => ({ _id: bookingId, status: { $in: ['confirmed', 'ongoing'] }, 'assignments._id': assignmentId, ...extra });
+const FUTURE_SLACK_MS = 5 * 60000;
+
+const loadAssignment = async ({ bookingId, assignmentId, driverId }) => {
+  const booking = await EventBooking.findOne(bookingId ? { _id: bookingId, 'assignments._id': assignmentId } : { 'assignments._id': assignmentId });
+  const a = booking?.assignments.id(assignmentId);
+  if (!booking || !a || (driverId && String(a.driverId) !== String(driverId))) throw new ApiError(404, 'Assignment not found');
+  return { booking, a };
+};
+
+export const startTrip = async ({ bookingId = null, assignmentId, driverId = null, by = 'driver' }) => {
+  const { booking, a } = await loadAssignment({ bookingId, assignmentId, driverId });
+  if (!['confirmed', 'ongoing'].includes(booking.status)) throw new ApiError(409, 'The booking is not confirmed yet');
+  if (a.driverStatus !== 'accepted') throw new ApiError(409, 'Accept the job first');
+  if (a.tripStartedAt) throw new ApiError(409, 'This trip has already started');
+  // not before the day of the event (the same day the customer can pay the balance)
+  if (Date.now() < startOfDayIST(booking.startAt).getTime()) throw new ApiError(409, 'You can start the trip on the day of the event');
+  const r = await EventBooking.updateOne(
+    tripFilter(booking._id, assignmentId, { assignments: { $elemMatch: { _id: a._id, tripStartedAt: null } } }),
+    { $set: { 'assignments.$.tripStartedAt': new Date(), 'assignments.$.tripStartedBy': by } },
+  );
+  if (!r.modifiedCount) throw new ApiError(409, 'This trip has already started');
+  notify({ userIds: [booking.userId], title: 'Your event vehicle has started', body: `${booking.code}: ${a.vehicleName} ${a.vehicleNumber} started the trip.`, bookingId: booking._id });
+  return EventBooking.findById(booking._id);
+};
+
+export const endTrip = async ({ bookingId = null, assignmentId, driverId = null, by = 'driver' }) => {
+  const { booking, a } = await loadAssignment({ bookingId, assignmentId, driverId });
+  if (!['confirmed', 'ongoing'].includes(booking.status)) throw new ApiError(409, 'The booking is not active');
+  if (!a.tripStartedAt) throw new ApiError(409, 'Start the trip first');
+  if (a.tripEndedAt) throw new ApiError(409, 'This trip has already ended');
+  const r = await EventBooking.updateOne(
+    tripFilter(booking._id, assignmentId, { assignments: { $elemMatch: { _id: a._id, tripEndedAt: null } } }),
+    { $set: { 'assignments.$.tripEndedAt': new Date(), 'assignments.$.tripEndedBy': by } },
+  );
+  if (!r.modifiedCount) throw new ApiError(409, 'This trip has already ended');
+  notify({ userIds: [booking.userId], title: 'Event trip finished', body: `${booking.code}: ${a.vehicleName} ${a.vehicleNumber} finished the trip.`, bookingId: booking._id });
+  return EventBooking.findById(booking._id);
+};
+
+/** Admin: set or correct a vehicle's real start and end (for vehicles with no driver app, or a wrong tap). */
+export const setTripTimes = async (bookingId, assignmentId, { startedAt, endedAt }) => {
+  const { booking, a } = await loadAssignment({ bookingId, assignmentId });
+  if (!['confirmed', 'ongoing'].includes(booking.status)) throw new ApiError(409, 'Times can be set until the booking is completed');
+  const s0 = startedAt ? new Date(startedAt) : null; const e0 = endedAt ? new Date(endedAt) : null;
+  if ((s0 && Number.isNaN(s0.getTime())) || (e0 && Number.isNaN(e0.getTime()))) throw new ApiError(400, 'Dates are not valid');
+  if (e0 && !s0) throw new ApiError(400, 'An end time needs a start time');
+  if (s0 && e0 && e0 <= s0) throw new ApiError(400, 'End must be after start');
+  if ((s0 && s0.getTime() > Date.now() + FUTURE_SLACK_MS) || (e0 && e0.getTime() > Date.now() + FUTURE_SLACK_MS)) throw new ApiError(400, 'Times cannot be in the future');
+  a.tripStartedAt = s0; a.tripEndedAt = e0;
+  a.tripStartedBy = s0 ? 'admin' : ''; a.tripEndedBy = e0 ? 'admin' : '';
+  await booking.save();
+  return booking;
+};
+
+/** Per vehicle: how long it really ran and what that costs beyond the booked window. */
+export const overtimeSuggestions = async (booking) => {
+  const b = typeof booking.toObject === 'function' ? booking.toObject() : booking;
+  const pricings = await EventPricing.find({ zoneId: b.zoneId, categoryId: { $in: b.items.map((i) => i.categoryId) } }).lean();
+  const priceBy = Object.fromEntries(pricings.map((p) => [String(p.categoryId), p]));
+  return (b.assignments || []).filter((a) => a.tripStartedAt && a.tripEndedAt).map((a) => {
+    const item = b.items.find((i) => String(i.categoryId) === String(a.categoryId)) || {};
+    const live = priceBy[String(a.categoryId)] || {};
+    // the rules the booking was priced with; old bookings fall back to the zone's current price list
+    const pick = (k) => (item[k] !== null && item[k] !== undefined ? item[k] : live[k] ?? 0);
+    const rules = { includedHours: pick('includedHours'), extraDayIncludedHours: pick('extraDayIncludedHours'), extraDayCharge: pick('extraDayCharge'), extraHourCharge: pick('extraHourCharge') };
+    const r = realTimeExtra({ rules, booked: item, startedAt: a.tripStartedAt, endedAt: a.tripEndedAt });
+    const done = (b.adjustments || []).filter((x) => x.assignmentId && String(x.assignmentId) === String(a._id)).reduce((n, x) => n + x.amount, 0);
+    return { assignmentId: a._id, vehicle: `${a.vehicleName} ${a.vehicleNumber}`, categoryName: a.categoryName, startedAt: a.tripStartedAt, endedAt: a.tripEndedAt, ...r, bookedHours: b.durationHours, alreadyAdded: round2(done), suggested: Math.max(0, round2(r.extra - done)) };
+  });
 };
 
 // ---- driver: assignment answer, withdrawals ------------------------------------------------------------------------
@@ -447,7 +548,7 @@ export const serializeForUser = (b) => {
     contactName: o.contactName, contactPhone: o.contactPhone,
     items: o.items, pricing: o.pricing, adjustments: o.adjustments,
     // the customer sees which vehicles are coming, never what each one earns
-    vehicles: (o.assignments || []).map((a) => ({ categoryName: a.categoryName, vehicleName: a.vehicleName, vehicleNumber: a.vehicleNumber, driverName: a.driverName, driverPhone: a.driverPhone })),
+    vehicles: (o.assignments || []).map((a) => ({ categoryName: a.categoryName, vehicleName: a.vehicleName, vehicleNumber: a.vehicleNumber, driverName: a.driverName, driverPhone: a.driverPhone, tripStartedAt: a.tripStartedAt, tripEndedAt: a.tripEndedAt })),
     payments: (o.payments || []).map((p) => ({ stage: p.stage, amount: p.amount, status: p.status, paidAt: p.paidAt })),
     due, cancelReason: o.cancelReason, refundAmount: o.refundAmount, createdAt: o.createdAt,
   };
@@ -464,6 +565,9 @@ export const serializeForDriver = (b, driverId) => {
     pickup: o.pickup, drop: o.drop, distanceKm: o.distanceKm, tripKm: round2(o.distanceKm * 2),
     vehicle: { name: a.vehicleName, number: a.vehicleNumber, category: a.categoryName },
     earning: a.driverShare, settled: Boolean(a.settledAt),
+    tripStartedAt: a.tripStartedAt, tripEndedAt: a.tripEndedAt,
+    canStart: ['confirmed', 'ongoing'].includes(o.status) && a.driverStatus === 'accepted' && !a.tripStartedAt && Date.now() >= startOfDayIST(o.startAt).getTime(),
+    canEnd: ['confirmed', 'ongoing'].includes(o.status) && Boolean(a.tripStartedAt) && !a.tripEndedAt,
     customer: live ? { name: o.contactName, phone: o.contactPhone } : null,
   }));
 };

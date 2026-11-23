@@ -1,12 +1,50 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
-import { Badge, Empty, Modal, Shell, Spinner, Table, act, btnDanger, btnGhost, btnPrimary, call, inputCls, rupees, useLoad, when } from './eventUi';
+import { Badge, Empty, Modal, Shell, Spinner, Table, act, btnDanger, btnGhost, btnPrimary, call, inputCls, rupees, toLocalInput, useLoad, when } from './eventUi';
 
 const STATUSES = ['all', 'requested', 'assigned', 'confirmed', 'ongoing', 'completed', 'cancelled', 'rejected'];
 
 const Row = ({ label, children }) => (
   <div className="flex justify-between gap-4 py-1 text-[13px]"><span className="font-semibold text-slate-500">{label}</span><span className="text-right font-bold text-slate-800">{children}</span></div>
 );
+
+const hoursText = (h) => `${Math.floor(h)} h ${Math.round((h % 1) * 60)} min`;
+
+/** The real start and end of one vehicle's trip: shown, and editable by the admin (vehicles with no driver app, or a wrong tap). */
+const TripRow = ({ a, bookingId, status, busy, onSaved }) => {
+  const [edit, setEdit] = useState(false);
+  const [t, setT] = useState({ startedAt: '', endedAt: '' });
+  const [saving, setSaving] = useState(false);
+  const live = ['confirmed', 'ongoing'].includes(status);
+  const open = () => { setT({ startedAt: toLocalInput(a.tripStartedAt), endedAt: toLocalInput(a.tripEndedAt) }); setEdit(true); };
+  const save = async () => {
+    setSaving(true);
+    const ok = await act(() => call('post', `/admin/events/bookings/${bookingId}/assignments/${a._id}/trip`, { startedAt: t.startedAt ? new Date(t.startedAt).toISOString() : null, endedAt: t.endedAt ? new Date(t.endedAt).toISOString() : null }), 'Trip times saved');
+    setSaving(false);
+    if (ok) { setEdit(false); onSaved(); }
+  };
+  if (!a.tripStartedAt && !live) return null;
+  return (
+    <div className="mt-1 w-full rounded-lg bg-slate-50 px-3 py-2 text-xs">
+      {edit ? (
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="text-[11px] font-bold text-slate-500">Started<input type="datetime-local" className={`${inputCls} mt-0.5`} value={t.startedAt} onChange={(e) => setT({ ...t, startedAt: e.target.value })} /></label>
+          <label className="text-[11px] font-bold text-slate-500">Ended<input type="datetime-local" className={`${inputCls} mt-0.5`} value={t.endedAt} onChange={(e) => setT({ ...t, endedAt: e.target.value })} /></label>
+          <button type="button" className={btnPrimary} disabled={saving || busy || !t.startedAt} onClick={save}>{saving ? 'Saving…' : 'Save'}</button>
+          <button type="button" className={btnGhost} onClick={() => setEdit(false)}>Cancel</button>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="font-semibold text-slate-600">
+            {a.tripStartedAt ? <>Started <b className="text-slate-800">{when(a.tripStartedAt)}</b>{a.tripStartedBy === 'admin' ? ' (by admin)' : ''}</> : 'Trip not started yet'}
+            {a.tripEndedAt ? <> · Ended <b className="text-slate-800">{when(a.tripEndedAt)}</b> · {hoursText((new Date(a.tripEndedAt) - new Date(a.tripStartedAt)) / 3600000)}</> : a.tripStartedAt ? <b className="text-sky-600"> · running</b> : null}
+          </span>
+          {live ? <button type="button" className={btnGhost} onClick={open}>{a.tripStartedAt ? 'Edit times' : 'Set times'}</button> : null}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Detail = ({ id, onClose, onChanged }) => {
   const { data: b, loading, reload } = useLoad(() => call('get', `/admin/events/bookings/${id}`), [id]);
@@ -39,15 +77,17 @@ const Detail = ({ id, onClose, onChanged }) => {
 
   const editable = ['requested', 'assigned'].includes(b.status);
   const allPicked = b.items.every((i) => (picked[String(i.categoryId)] || []).length === i.quantity);
-  const ask = (msg) => window.prompt(msg) ;
+  const ask = (msg) => window.prompt(msg);
+  const unbilled = (b.overtime || []).reduce((n, o) => n + (o.suggested || 0), 0);
+  const running = b.assignments.some((a) => a.tripStartedAt && !a.tripEndedAt);
 
   return (
     <Modal wide title={`${b.code} · ${b.eventTitle || b.eventTypeName}`} onClose={onClose}
       footer={(
         <>
           {['requested', 'assigned'].includes(b.status) ? <button type="button" className={btnDanger} disabled={busy} onClick={() => { const r = ask('Reason for rejecting / cancelling'); if (r !== null) run(() => call('post', `/admin/events/bookings/${id}/${b.status === 'requested' ? 'reject' : 'cancel'}`, { reason: r }), 'Done'); }}>{b.status === 'requested' ? 'Reject request' : 'Cancel booking'}</button> : null}
-          {['confirmed', 'ongoing'].includes(b.status) ? <button type="button" className={btnDanger} disabled={busy} onClick={() => { const r = ask('Reason for cancelling (the advance is refunded as per the cancellation rules)'); if (r !== null) run(() => call('post', `/admin/events/bookings/${id}/cancel`, { reason: r }), 'Booking cancelled'); }}>Cancel booking</button> : null}
-          {b.status === 'ongoing' ? <button type="button" className={btnPrimary} disabled={busy} onClick={() => window.confirm('Mark the event completed and credit the drivers?') && run(() => call('post', `/admin/events/bookings/${id}/complete`), 'Completed')}>Mark completed</button> : null}
+          {b.status === 'confirmed' && !b.assignments.some((a) => a.tripStartedAt) ? <button type="button" className={btnDanger} disabled={busy} onClick={() => { const r = ask('Reason for cancelling (the advance is refunded as per the cancellation rules)'); if (r !== null) run(() => call('post', `/admin/events/bookings/${id}/cancel`, { reason: r }), 'Booking cancelled'); }}>Cancel booking</button> : null}
+          {b.status === 'ongoing' ? <button type="button" className={btnPrimary} disabled={busy || running} title={running ? 'A trip is still running' : ''} onClick={() => window.confirm(unbilled > 0 ? `Real overtime of ${rupees(unbilled)} has not been added as a charge yet. Complete anyway?` : 'Mark the event completed and credit the drivers?') && run(() => call('post', `/admin/events/bookings/${id}/complete`), 'Completed')}>Mark completed</button> : null}
           {editable ? <button type="button" className={btnPrimary} disabled={busy || !allPicked} onClick={() => run(() => call('post', `/admin/events/bookings/${id}/assign`, { vehicleIds: Object.values(picked).flat() }), 'Vehicles assigned, customer can now pay the advance')}>{b.status === 'assigned' ? 'Re-assign vehicles' : 'Assign vehicles'}</button> : null}
         </>
       )}>
@@ -123,6 +163,7 @@ const Detail = ({ id, onClose, onChanged }) => {
                         <span className="text-slate-500">{a.ownerType === 'admin' ? 'PALKI keeps all' : `Driver ${rupees(a.driverShare)} / PALKI ${rupees(a.adminShare)}`}</span>
                         <Badge value={a.driverStatus} />
                       </span>
+                      <TripRow a={a} bookingId={id} status={b.status} busy={busy} onSaved={() => { reload(); onChanged(); }} />
                     </div>
                   ))}
                 </div>
@@ -132,7 +173,28 @@ const Detail = ({ id, onClose, onChanged }) => {
         })}
       </div>
 
-      {['assigned', 'confirmed'].includes(b.status) ? (
+      {(b.overtime || []).length ? (
+        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <p className="mb-2 text-xs font-black uppercase tracking-wider text-amber-800">Real trip time and overtime</p>
+          <div className="space-y-2">
+            {b.overtime.map((o) => (
+              <div key={o.assignmentId} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white p-3 text-xs">
+                <div>
+                  <p className="font-black text-slate-800">{o.vehicle}</p>
+                  <p className="font-semibold text-slate-500">Ran {hoursText(o.actualHours)} · booked {hoursText(o.bookedHours)} · {o.allowedHours} h included{o.days > 1 ? ` · ${o.days} days` : ''}</p>
+                  <p className="font-semibold text-slate-500">Time charged at booking {rupees(o.alreadyCharged)} · real time costs {rupees(o.timeCharge)}{o.alreadyAdded ? ` · already added ${rupees(o.alreadyAdded)}` : ''}</p>
+                </div>
+                {o.suggested > 0 ? (
+                  <button type="button" className={btnPrimary} disabled={busy || b.status === 'completed'} onClick={() => run(() => call('post', `/admin/events/bookings/${id}/adjustments`, { label: `Extra time: ${o.vehicle} (${hoursText(o.actualHours)})`, amount: o.suggested, assignmentId: o.assignmentId }), 'Extra charge added, customer can pay it')}>Add {rupees(o.suggested)} charge</button>
+                ) : <span className="font-black text-emerald-600">Nothing extra</span>}
+              </div>
+            ))}
+          </div>
+          <p className="mt-2 text-[11px] font-semibold text-amber-800">A charge added here is sent to the customer to pay online. If the vehicle belongs to a driver, he earns his share of it (after commission) when you complete the event.</p>
+        </div>
+      ) : null}
+
+      {['assigned', 'confirmed', 'ongoing'].includes(b.status) ? (
         <div className="mt-6 rounded-xl border border-slate-200 p-4">
           <p className="mb-2 text-xs font-black uppercase tracking-wider text-slate-500">Add an extra charge (or a discount as a minus amount)</p>
           <div className="flex flex-wrap gap-2">

@@ -4,7 +4,7 @@ import { ApiError } from '../../../../utils/ApiError.js';
 import { Zone } from '../../driver/models/Zone.js';
 import { Driver } from '../../driver/models/Driver.js';
 import { EventBooking, EventVehicle, EventVehicleCategory, EventWallet, EventWalletTransaction, EventWithdrawal } from '../models/eventModels.js';
-import { answerAssignment, getSettings, requestWithdrawal, serializeForDriver } from '../services/eventService.js';
+import { answerAssignment, endTrip, getSettings, requestWithdrawal, serializeForDriver, startTrip } from '../services/eventService.js';
 
 const ok = (res, data, message) => res.json({ success: true, data, message });
 const me = (req) => String(req.auth?.sub || '');
@@ -80,6 +80,12 @@ export const respond = asyncHandler(async (req, res) => {
   const accept = req.body?.accept === true;
   await answerAssignment(me(req), req.params.assignmentId, accept);
   ok(res, { accepted: accept }, accept ? 'Accepted' : 'Declined - the admin will assign another vehicle');
+});
+
+export const trip = (kind) => asyncHandler(async (req, res) => {
+  const run = kind === 'start' ? startTrip : endTrip;
+  const b = await run({ assignmentId: req.params.assignmentId, driverId: me(req), by: 'driver' });
+  ok(res, serializeForDriver(b, me(req)).find((a) => String(a.assignmentId) === String(req.params.assignmentId)), kind === 'start' ? 'Trip started' : 'Trip ended');
 });
 
 // ---- earnings and withdrawals ----------------------------------------------------------------------------------

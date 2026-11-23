@@ -122,6 +122,11 @@ const itemSchema = new Schema(
     unitTotal: { type: Number, default: 0 }, // one vehicle, the whole trip
     lineTotal: { type: Number, default: 0 },
     commissionPercent: { type: Number, default: 0 },
+    // the time rules this booking was priced with, so the real trip time is judged by the same rules
+    includedHours: { type: Number, default: null },
+    extraDayIncludedHours: { type: Number, default: null },
+    extraDayCharge: { type: Number, default: null },
+    extraHourCharge: { type: Number, default: null },
   },
   { _id: false },
 );
@@ -143,13 +148,18 @@ const assignmentSchema = new Schema(
     driverStatus: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },
     respondedAt: { type: Date, default: null },
     settledAt: { type: Date, default: null },
+    // the real trip: the driver (or the admin, for vehicles with no app) records start and end
+    tripStartedAt: { type: Date, default: null },
+    tripEndedAt: { type: Date, default: null },
+    tripStartedBy: { type: String, enum: ['driver', 'admin', ''], default: '' },
+    tripEndedBy: { type: String, enum: ['driver', 'admin', ''], default: '' },
   },
   { _id: true },
 );
 
 const paymentSchema = new Schema(
   {
-    stage: { type: String, enum: ['advance', 'balance'], required: true },
+    stage: { type: String, enum: ['advance', 'balance', 'extra'], required: true },
     amount: { type: Number, required: true },
     provider: { type: String, default: 'razorpay' },
     orderId: { type: String, default: '' },
@@ -194,7 +204,7 @@ const eventBookingSchema = new Schema(
       advanceAmount: { type: Number, default: 0 },
       balanceAmount: { type: Number, default: 0 },
     },
-    adjustments: { type: [{ _id: false, label: String, amount: Number, at: { type: Date, default: Date.now } }], default: [] },
+    adjustments: { type: [{ _id: false, label: String, amount: Number, assignmentId: { type: ObjectId, default: null }, at: { type: Date, default: Date.now } }], default: [] },
 
     status: {
       type: String,

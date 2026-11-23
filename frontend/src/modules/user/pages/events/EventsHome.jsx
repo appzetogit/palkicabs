@@ -45,7 +45,7 @@ const EventsHome = () => {
             <p className="mt-2 text-xs font-semibold text-slate-600">{b.items.map((i) => `${i.categoryName} × ${i.quantity}`).join(', ')}</p>
             <div className="mt-3 flex items-center justify-between">
               <p className="text-sm font-black text-slate-900">{rupees(b.pricing?.total)}</p>
-              {b.due?.stage ? <span className="flex items-center gap-1 text-xs font-black text-indigo-600">Pay {b.due.stage} {rupees(b.due.amount)} <ChevronRight size={14} /></span> : <ChevronRight size={16} className="text-slate-300" />}
+              {b.due?.stage ? <span className="flex items-center gap-1 text-xs font-black text-indigo-600">Pay {b.due.stage === 'extra' ? 'extra charge' : b.due.stage} {rupees(b.due.amount)} <ChevronRight size={14} /></span> : <ChevronRight size={16} className="text-slate-300" />}
             </div>
           </button>
         ))}
