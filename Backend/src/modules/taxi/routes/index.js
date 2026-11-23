@@ -7,6 +7,7 @@ import { userModuleRouter } from '../user/routes/index.js';
 import { commonRouter } from '../common/routes/commonRoutes.js';
 import { careerRouter } from '../career/routes/careerRoutes.js';
 import { busModuleRouter } from '../bus/routes/index.js';
+import { eventRouter } from '../event/routes/index.js';
 
 export const taxiRouter = Router();
 
@@ -18,3 +19,4 @@ taxiRouter.use(supportModuleRouter);
 taxiRouter.use(commonRouter);
 // HIDDEN (careers): taxiRouter.use(careerRouter);
 // HIDDEN (bus): taxiRouter.use(busModuleRouter);
+taxiRouter.use(eventRouter);
