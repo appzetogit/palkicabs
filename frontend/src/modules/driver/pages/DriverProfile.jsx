@@ -27,8 +27,7 @@ import {
     HandCoins,
     Phone,
     X,
-    Landmark,
-} from 'lucide-react';
+    Landmark, CalendarDays } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSupportInfo } from '../../shared/content/supportInfo';
 import DriverBottomNav from '../../shared/components/DriverBottomNav';
@@ -317,6 +316,7 @@ Processing Time: Refunds are typically credited back to the original payment met
             items: [
                 { id: 'personal', label: 'Personal Information', sub: driverPhone, icon: <User size={20} />, path: `${routePrefix}/edit-profile` },
                 { id: 'wallet', label: 'Wallet', icon: <Wallet size={20} />, path: `${routePrefix}/wallet` },
+                { id: 'events', label: 'Event Bookings', sub: 'Weddings, trips and functions', icon: <CalendarDays size={20} />, path: '/taxi/driver/events' },
                 { id: 'bankDetails', label: 'Bank Details', sub: bankDetailsSubtitle, icon: <Landmark size={20} />, action: openBankDetails },
                 ...(!isOwner ? [
                     { id: 'vehicle', label: 'My Vehicle', icon: <Car size={20} />, path: `${routePrefix}/vehicle-fleet` },

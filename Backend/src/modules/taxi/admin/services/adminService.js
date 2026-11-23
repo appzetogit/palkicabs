@@ -7744,7 +7744,7 @@ const categoryForAppModule = (module = {}) => {
   const service = String(module.service_type || '').toLowerCase();
   if (transport === 'delivery') return 'delivery';
   if (service === 'outstation') return 'outstation';
-  if (service === 'bus' || service === 'rental') return null;
+  if (service === 'bus' || service === 'rental' || service === 'event') return null;
   if (/airport/i.test(module.name || '')) return 'airport';
   if (service === 'pooling') return 'pooling';
   return 'taxi';

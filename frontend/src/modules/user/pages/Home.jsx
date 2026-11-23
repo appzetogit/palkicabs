@@ -862,6 +862,11 @@ const Home = () => {
       return;
     }
 
+    if (serviceType === "event") {
+      navigate("/taxi/user/events");
+      return;
+    }
+
     if (name.includes("pooling") || serviceType.includes("pooling")) {
       navigate("/taxi/user/pooling");
       return;

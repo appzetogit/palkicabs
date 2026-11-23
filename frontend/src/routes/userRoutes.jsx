@@ -109,6 +109,9 @@ const userRoutes = (
       <Route path="/taxi/user/parcel/tracking" element={<ParcelTracking />} />
       <Route path="/taxi/user/parcel/detail/:id" element={<RideDetail />} />
 
+      <Route path="/taxi/user/events" element={<UserEventsHome />} />
+      <Route path="/taxi/user/events/new" element={<UserEventNew />} />
+      <Route path="/taxi/user/events/booking/:id" element={<UserEventBookingDetail />} />
       <Route path="/taxi/user/pooling" element={<UserPoolingHome />} />
       <Route path="/taxi/user/pooling/list" element={<UserPoolingList />} />
       <Route path="/taxi/user/pooling/seats/:id" element={<UserPoolingSeats />} />

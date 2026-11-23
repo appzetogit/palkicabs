@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { Zone } from '../src/modules/taxi/driver/models/Zone.js';
 import { Driver } from '../src/modules/taxi/driver/models/Driver.js';
 import { User } from '../src/modules/taxi/user/models/User.js';
+import { TaxiAppModule } from '../src/modules/taxi/admin/models/TaxiAppModule.js';
 import { EventBooking, EventPricing, EventSettings, EventType, EventVehicle, EventVehicleCategory } from '../src/modules/taxi/event/models/eventModels.js';
 import { assignVehicles, completeBooking, createBooking } from '../src/modules/taxi/event/services/eventService.js';
 
@@ -41,6 +42,12 @@ const run = async () => {
   const out = {};
 
   await EventSettings.findOneAndUpdate({ key: 'default' }, { $setOnInsert: { key: 'default', advancePercent: 30, bufferHours: 2, minLeadHours: 24, freeCancelHours: 48, lateCancelRefundPercent: 0, minWithdrawal: 500 } }, opts);
+
+  // the home-screen tile that opens the rider's Event Booking section (order and on/off stay admin-editable)
+  await TaxiAppModule.findOneAndUpdate({ name: 'Event Booking' }, {
+    $set: { name: 'Event Booking', transport_type: 'event', service_type: 'event', short_description: 'Cars and buses for weddings, trips and functions', mobile_menu_icon: '/mini_bus.png' },
+    $setOnInsert: { order_by: 6, active: 1 },
+  }, opts);
 
   for (const [i, [name, description]] of TYPES.entries()) await EventType.findOneAndUpdate({ name }, { $set: { name, description, order: i + 1, active: true } }, opts);
   const cats = {};

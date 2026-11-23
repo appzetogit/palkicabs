@@ -301,3 +301,7 @@ export const DhabaOrders = lazy(() => import('../modules/dhaba/pages/DhabaOrders
 export const DhabaMenu = lazy(() => import('../modules/dhaba/pages/DhabaMenu'));
 export const DhabaRegister = lazy(() => import('../modules/dhaba/pages/DhabaRegister'));
 export const DhabaEarnings = lazy(() => import('../modules/dhaba/pages/DhabaEarnings'));
+export const UserEventsHome = lazy(() => import('../modules/user/pages/events/EventsHome'));
+export const UserEventNew = lazy(() => import('../modules/user/pages/events/EventNew'));
+export const UserEventBookingDetail = lazy(() => import('../modules/user/pages/events/EventBookingDetail'));
+export const DriverEventHub = lazy(() => import('../modules/driver/pages/events/EventDriverHub'));

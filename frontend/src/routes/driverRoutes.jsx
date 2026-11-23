@@ -27,6 +27,7 @@ import {
   OTPVerification,
   PhoneRegistration,
   PoolingDriverBookings,
+  DriverEventHub,
   PoolingDriverDashboard,
   PoolingDriverOnboarding,
   PoolingDriverPendingStatus,
@@ -103,6 +104,7 @@ const driverRoutes = (
     {/* HIDDEN (bus/rental/spiritual): <Route path="bus-home" element={<BusDriverHome />} /> */}
     {/* HIDDEN (bus/rental/spiritual): <Route path="bus-home/live-route" element={<BusDriverLiveRoute />} /> */}
     {/* HIDDEN (bus/rental/spiritual): <Route path="bus-home/tickets" element={<BusConductorTickets />} /> */}
+    <Route path="events" element={<DriverEventHub />} />
     <Route path="pooling" element={<PoolingDriverDashboard />} />
     <Route path="pooling/onboarding" element={<PoolingDriverOnboarding />} />
     <Route path="pooling/status" element={<PoolingDriverPendingStatus />} />
