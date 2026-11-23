@@ -17,6 +17,7 @@ import {
   Settings,
   Settings2,
   Share2,
+  CalendarDays,
   ShieldAlert,
   ShieldCheck,
   Smartphone,
@@ -141,6 +142,20 @@ export const ADMIN_SIDEBAR_SECTIONS = [
           { label: 'Pooling Commission', path: '/admin/pooling/commission', permission: 'pooling.view' },
           { label: 'Routes & Stops', path: '/admin/pooling/routes', permission: 'pooling.view' },
           { label: 'Pooling Bookings', path: '/admin/pooling/bookings', permission: 'pooling.view' },
+        ],
+      },
+      {
+        icon: CalendarDays,
+        label: 'Event Booking',
+        subItems: [
+          { label: 'Event Bookings', path: '/admin/events/bookings', permission: 'events.view' },
+          { label: 'Event Types', path: '/admin/events/types', permission: 'events.view' },
+          { label: 'Vehicle Categories', path: '/admin/events/categories', permission: 'events.view' },
+          { label: 'Event Pricing', path: '/admin/events/pricing', permission: 'events.view' },
+          { label: 'Event Vehicles', path: '/admin/events/vehicles', permission: 'events.view' },
+          { label: 'Event Inventory', path: '/admin/events/inventory', permission: 'events.view' },
+          { label: 'Event Withdrawals', path: '/admin/events/withdrawals', permission: 'events.view' },
+          { label: 'Event Settings', path: '/admin/events/settings', permission: 'events.view' },
         ],
       },
       {

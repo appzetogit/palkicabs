@@ -207,6 +207,14 @@ export const AdminPendingPoolingDrivers = lazy(() => import('../modules/admin/pa
 export const AdminPoolingVehicleForm = lazy(() => import('../modules/admin/pages/pooling/PoolingVehicleForm'));
 export const AdminPoolingBookings = lazy(() => import('../modules/admin/pages/pooling/PoolingBookings'));
 export const AdminPoolingCommissionManager = lazy(() => import('../modules/admin/pages/pooling/PoolingCommissionManager'));
+export const AdminEventBookings = lazy(() => import('../modules/admin/pages/events/EventBookingsPage'));
+export const AdminEventTypes = lazy(() => import('../modules/admin/pages/events/EventCatalogPages').then((m) => ({ default: m.EventTypesPage })));
+export const AdminEventCategories = lazy(() => import('../modules/admin/pages/events/EventCatalogPages').then((m) => ({ default: m.EventCategoriesPage })));
+export const AdminEventPricing = lazy(() => import('../modules/admin/pages/events/EventPricingPage'));
+export const AdminEventVehicles = lazy(() => import('../modules/admin/pages/events/EventVehiclesPage'));
+export const AdminEventInventory = lazy(() => import('../modules/admin/pages/events/EventInventoryPage'));
+export const AdminEventWithdrawals = lazy(() => import('../modules/admin/pages/events/EventWithdrawalsPage'));
+export const AdminEventSettings = lazy(() => import('../modules/admin/pages/events/EventSettingsPage'));
 export const AdminBusServiceManager = lazy(() => import('../modules/admin/pages/bus-service/BusServiceManager'));
 export const AdminPendingBusDrivers = lazy(() => import('../modules/admin/pages/bus-service/PendingBusDrivers'));
 export const AdminBusServiceDetails = lazy(() => import('../modules/admin/pages/bus-service/BusServiceDetails'));
