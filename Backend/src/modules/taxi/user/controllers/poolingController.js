@@ -150,6 +150,13 @@ const prepareBooking = async (body, { requireSeats = true } = {}) => {
   const dropStop = findStop(route, toCleanString(body?.dropStopId), 'drop');
   if (!pickupStop || !dropStop) throw new ApiError(400, 'Pickup and drop points are required for pooling booking');
 
+  // pickup must come before drop along the route: by sequence, else by distance when both stops have one
+  const seq = (st) => (st?.sequence === undefined || st?.sequence === null || st?.sequence === '' ? null : Number(st.sequence));
+  const [ps, ds] = [seq(pickupStop), seq(dropStop)];
+  const [pk, dk] = [stopKm(pickupStop), stopKm(dropStop)];
+  const behind = Number.isFinite(ps) && Number.isFinite(ds) ? ps >= ds : pk > 0 && dk > 0 && pk >= dk;
+  if (behind) throw new ApiError(400, 'Drop point must be after the pickup point on this route');
+
   const seats = requireSeats ? selectedSeats.length : Math.max(1, Number(body?.seats || 1));
   if (seats > Math.max(1, Number(route.maxSeatsPerBooking || 1))) {
     throw new ApiError(400, `Maximum ${route.maxSeatsPerBooking} seats allowed per booking`);
@@ -403,12 +410,15 @@ export const verifyPoolingBookingPayment = asyncHandler(async (req, res) => {
     && String(notes.scheduleId) === p.scheduleId
     && String(notes.travelDate) === p.travelDate
     && String(notes.seats) === [...p.selectedSeats].sort().join(',');
-  if (!matches) throw new ApiError(400, 'Payment does not match this booking');
+  if (!matches || String(order?.status) !== 'paid') throw new ApiError(400, 'Payment could not be verified');
 
   const alreadyBooked = await getBookedSeatIds(p);
   const refundAndFail = async (message) => {
-    await razorpayRequest({ method: 'POST', path: `/payments/${encodeURIComponent(paymentId)}/refund`, body: { amount: order.amount, notes: { reason: 'pooling seat conflict' } }, keyId, keySecret }).catch(() => null);
-    throw new ApiError(409, `${message} Your payment is being refunded.`);
+    // a retried verify refunds again; Razorpay rejects a second full refund, so the rider is never refunded twice
+    let refunded = true;
+    await razorpayRequest({ method: 'POST', path: `/payments/${encodeURIComponent(paymentId)}/refund`, body: { amount: order.amount, notes: { reason: 'pooling seat conflict' } }, keyId, keySecret })
+      .catch((e) => { refunded = /already.*refund/i.test(String(e?.message || '')); if (!refunded) console.error('[pooling] refund failed', paymentId, e?.message); });
+    throw new ApiError(409, refunded ? `${message} Your payment is being refunded.` : `${message} We could not refund automatically. Please contact support with payment ${paymentId}.`);
   };
   const conflict = p.selectedSeats.find((seatId) => alreadyBooked.includes(seatId));
   if (conflict) await refundAndFail(`Seat ${conflict} was just booked by another user.`);
