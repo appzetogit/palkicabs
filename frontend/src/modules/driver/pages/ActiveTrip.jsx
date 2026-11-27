@@ -2605,30 +2605,32 @@ const ActiveTrip = () => {
                                 <div className="mb-4 rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-3">
                                     <div className="flex items-center justify-between gap-3">
                                         <div>
-                                            <p className="text-[9px] font-black uppercase tracking-[0.22em] text-slate-400">Delivery Radius</p>
+                                            <p className="text-[9px] font-black uppercase tracking-[0.22em] text-slate-400">Delivery Status</p>
                                             <p className="mt-1 text-[12px] font-black text-slate-900">
-                                                {Math.round(dropDistanceMeters)} m away from receiver
+                                                {canDeliverParcel
+                                                    ? `${Math.round(dropDistanceMeters)} m away from receiver`
+                                                    : `${Math.round(dropDistanceMeters)} m from destination (Early Drop-off)`}
                                             </p>
                                         </div>
-                                        <div className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${canDeliverParcel ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
-                                            {canDeliverParcel ? 'Unlocked' : 'Within 100 m'}
+                                        <div className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${canDeliverParcel ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-blue-50 text-blue-600 border border-blue-100'}`}>
+                                            {canDeliverParcel ? 'At Drop Location' : 'Early Drop Allowed'}
                                         </div>
                                     </div>
                                 </div>
                             )}
-                            {isParcel && arrivalGuardError && (
-                                <p className="-mt-1 mb-4 text-center text-[11px] font-black text-red-500 uppercase tracking-wider">
-                                    {arrivalGuardError}
-                                </p>
+                            {!isParcel && !canDeliverParcel && Number.isFinite(dropDistanceMeters) && dropDistanceMeters < 100000 && (
+                                <div className="mb-4 rounded-2xl border border-blue-100 bg-blue-50/70 px-4 py-2.5 flex items-center justify-between gap-2">
+                                    <p className="text-[11px] font-semibold text-blue-700">
+                                        Dropping off before destination ({Math.round(dropDistanceMeters)} m away)
+                                    </p>
+                                    <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-blue-800">
+                                        Early Drop
+                                    </span>
+                                </div>
                             )}
                             <Motion.button
                                 whileTap={{ scale: 0.96 }}
                                 onClick={() => {
-                                    if (isParcel && !canDeliverParcel) {
-                                        setArrivalGuardError('Reach within 100 meters of receiver before delivering parcel.');
-                                        return;
-                                    }
-
                                     setArrivalGuardError('');
                                     publishRideStatus('arrived');
                                     setSelectedPaymentMode('');
@@ -2637,10 +2639,12 @@ const ActiveTrip = () => {
                                     setDriverPaymentStatus('pending');
                                     setPhase('payment_confirm');
                                 }}
-                                className={`w-full h-15 text-white rounded-xl flex items-center justify-center gap-3 text-[14px] font-semibold uppercase tracking-wide shadow-xl transition-opacity ${isParcel && !canDeliverParcel ? 'opacity-70' : ''}`}
+                                className="w-full h-15 text-white rounded-xl flex items-center justify-center gap-3 text-[14px] font-semibold uppercase tracking-wide shadow-xl transition-opacity"
                                 style={{ backgroundColor: routeStrokeColor, boxShadow: `0 18px 30px ${routeAccentMuted}` }}
                             >
-                                {isParcel ? 'Deliver Parcel' : 'Arrived at Destination'} <ChevronRight size={18} strokeWidth={3} />
+                                {isParcel
+                                    ? (canDeliverParcel ? 'Deliver Parcel' : 'Deliver Parcel (Early Drop-off)')
+                                    : (canDeliverParcel ? 'Arrived at Destination' : 'Drop Passenger Here (End Ride)')} <ChevronRight size={18} strokeWidth={3} />
                             </Motion.button>
                         </Motion.div>
                     )}
@@ -2673,7 +2677,9 @@ const ActiveTrip = () => {
                                             </p>
                                             <p className="mt-2 text-[24px] font-black tracking-tight text-slate-900">{displayFare}</p>
                                             <p className="text-[11px] font-semibold text-slate-500">
-                                                {isParcel ? 'Parcel delivered and awaiting payment confirmation.' : 'Passenger reached destination and ready to complete.'}
+                                                {isParcel
+                                                    ? (canDeliverParcel ? 'Parcel delivered and awaiting payment confirmation.' : 'Parcel delivered (early drop-off) and awaiting payment confirmation.')
+                                                    : (canDeliverParcel ? 'Passenger reached destination and ready to complete.' : 'Passenger dropped off early and ready to complete.')}
                                             </p>
                                         </div>
                                         <div className="rounded-2xl px-3 py-2 text-right" style={{ backgroundColor: routeAccentSoft }}>
